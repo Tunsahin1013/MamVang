@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mâm Vàng — Bảng điều khiển căng tin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#101a15;
+    --panel:#16221b;
+    --panel-2:#1C2B22;
+    --line:#28382f;
+    --ink:#EAF1EC;
+    --ink-dim:#8BA294;
+    --mustard:#E8A93A;
+    --green:#6FCF97;
+    --red:#E8564A;
+    --blue:#5FA8E0;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .display{font-family:'Archivo Black',sans-serif;}
+
+  .shell{max-width:1200px; margin:0 auto; padding:20px 20px 60px;}
+
+  header{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:12px;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand .mark{width:34px; height:34px; border-radius:9px; background:var(--mustard); color:#16221b; display:flex; align-items:center; justify-content:center; font-family:'Archivo Black',sans-serif; font-size:16px;}
+  .brand .name{font-family:'Archivo Black',sans-serif; font-size:17px; letter-spacing:.3px;}
+  .brand .sub{font-size:11px; color:var(--ink-dim);}
+  .clock{font-family:'IBM Plex Mono',monospace; font-size:14px; color:var(--ink-dim); background:var(--panel); border:1px solid var(--line); padding:8px 14px; border-radius:10px;}
+
+  nav.tabs{display:flex; gap:6px; background:var(--panel); border:1px solid var(--line); padding:5px; border-radius:12px; margin-bottom:20px; width:fit-content;}
+  nav.tabs button{
+    background:transparent; border:none; color:var(--ink-dim); font-weight:600; font-size:13px; padding:9px 16px;
+    border-radius:9px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  nav.tabs button.active{background:var(--mustard); color:#16221b;}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* ===== ORDERS / KDS ===== */
+  .kds-cols{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+  .kds-col{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; min-height:200px;}
+  .kds-col h4{margin:2px 4px 12px; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--ink-dim); display:flex; justify-content:space-between;}
+  .count-badge{background:var(--panel-2); border-radius:8px; padding:1px 8px; font-family:'IBM Plex Mono',monospace;}
+  .order-card{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px;
+    border-left:4px solid var(--mustard); cursor:pointer; transition:.15s;
+  }
+  .order-card:hover{border-color:var(--mustard); transform:translateY(-1px);}
+  .order-card .top-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .order-num{font-family:'Archivo Black',sans-serif; font-size:20px; color:var(--mustard);}
+  .order-time{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-dim);}
+  .order-slot{font-size:11px; color:var(--ink-dim); margin-bottom:8px;}
+  .order-items{font-size:12.5px; line-height:1.6; color:#CBD8D0;}
+  .order-items b{color:var(--ink);}
+  .late-tag{color:var(--red); font-weight:700;}
+  .col-cooking .order-card{border-left-color:var(--blue);}
+  .col-ready .order-card{border-left-color:var(--green);}
+  .col-done .order-card{border-left-color:var(--ink-dim); opacity:.55;}
+  .empty-col{color:var(--ink-dim); font-size:12px; text-align:center; padding:20px 0;}
+
+  /* ===== MENU / INVENTORY ===== */
+  .menu-table{width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+  .menu-table th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--ink-dim); padding:12px 16px; background:var(--panel-2); font-weight:600;}
+  .menu-table td{padding:12px 16px; border-top:1px solid var(--line); font-size:14px; vertical-align:middle;}
+  .icon-cell{font-size:20px; width:36px;}
+  .stock-input{width:60px; background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:8px; padding:6px 8px; font-family:'IBM Plex Mono',monospace; font-size:13px;}
+  .toggle{width:42px; height:24px; border-radius:20px; background:var(--line); position:relative; cursor:pointer; display:inline-block; transition:.2s;}
+  .toggle::after{content:""; width:18px; height:18px; background:var(--ink-dim); border-radius:50%; position:absolute; top:3px; left:3px; transition:.2s;}
+  .toggle.on{background:var(--green);}
+  .toggle.on::after{transform:translateX(18px); background:#0e1b13;}
+  .badge{font-size:11px; padding:3px 9px; border-radius:8px; font-weight:600;}
+  .badge.low{background:rgba(232,86,74,.15); color:var(--red);}
+  .badge.ok{background:rgba(111,207,151,.15); color:var(--green);}
+  .badge.off{background:rgba(139,162,148,.2); color:var(--ink-dim);}
+
+  /* ===== STATS ===== */
+  .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px;}
+  .stat-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px;}
+  .stat-card .lbl{font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.6px;}
+  .stat-card .val{font-family:'Archivo Black',sans-serif; font-size:26px; margin-top:8px;}
+  .stat-card .delta{font-size:11px; color:var(--green); margin-top:4px;}
+
+  .panels{display:grid; grid-template-columns:1.4fr 1fr; gap:14px;}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px;}
+  .panel h4{margin:0 0 16px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--ink-dim);}
+  .bars{display:flex; align-items:flex-end; gap:10px; height:150px;}
+  .bar-col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
+  .bar{width:100%; background:linear-gradient(180deg, var(--mustard), var(--mustard-deep, #C98C1E)); border-radius:6px 6px 0 0; position:relative;}
+  .bar.peak{background:linear-gradient(180deg, var(--red), #a8362c);}
+  .bar-lbl{font-size:10px; color:var(--ink-dim); margin-top:6px; font-family:'IBM Plex Mono',monospace;}
+  .top-item{display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px;}
+  .top-item:last-child{border-bottom:none;}
+  .top-item .rank{width:20px; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace;}
+  .top-item .n{flex:1; font-weight:600;}
+  .top-item .v{font-family:'IBM Plex Mono',monospace; color:var(--mustard);}
+
+  @media (max-width:900px){
+    .kds-cols{grid-template-columns:1fr 1fr;}
+    .stat-grid{grid-template-columns:1fr 1fr;}
+    .panels{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="brand">
+      <div class="mark">MV</div>
+      <div>
+        <div class="name">MÂM VÀNG · Bảng điều khiển</div>
+        <div class="sub">Căng tin — dành cho nhân viên &amp; quản lý</div>
+      </div>
+    </div>
+    <div class="clock mono" id="clock">11:18:04</div>
+  </header>
+
+  <nav class="tabs">
+    <button class="active" data-view="orders">🧾 Đơn hàng</button>
+    <button data-view="menu">🍽 Món ăn</button>
+    <button data-view="stats">📊 Thống kê</button>
+  </nav>
+
+  <!-- ORDERS -->
+  <section class="view active" id="view-orders">
+    <div class="kds-cols" id="kdsCols"></div>
+  </section>
+
+  <!-- MENU -->
+  <section class="view" id="view-menu">
+    <table class="menu-table">
+      <thead><tr><th></th><th>Món</th><th>Giá</th><th>Còn lại</th><th>Trạng thái</th><th>Bán</th></tr></thead>
+      <tbody id="menuBody"></tbody>
+    </table>
+  </section>
+
+  <!-- STATS -->
+  <section class="view" id="view-stats">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="lbl">Doanh thu hôm nay</div><div class="val">2.86tr</div><div class="delta">↑ 12% so với hôm qua</div></div>
+      <div class="stat-card"><div class="lbl">Số đơn đã bán</div><div class="val">118</div><div class="delta">↑ 8 đơn</div></div>
+      <div class="stat-card"><div class="lbl">Giờ đông nhất</div><div class="val">11:15</div><div class="delta">32 đơn / 5 phút</div></div>
+      <div class="stat-card"><div class="lbl">Thời gian chờ TB</div><div class="val">3.4 phút</div><div class="delta">↓ giảm so với trước</div></div>
+    </div>
+    <div class="panels">
+      <div class="panel">
+        <h4>Đơn hàng theo khung giờ</h4>
+        <div class="bars" id="barsWrap"></div>
+      </div>
+      <div class="panel">
+        <h4>Món bán chạy hôm nay</h4>
+        <div id="topItems"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ---------- CLOCK ---------- */
+function tickClock(){
+  const el = document.getElementById('clock');
+  const d = new Date();
+  el.textContent = d.toLocaleTimeString('vi-VN', {hour12:false});
+}
+setInterval(tickClock, 1000); tickClock();
+
+/* ---------- TABS ---------- */
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.onclick = () => {
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  };
+});
+
+/* ---------- ORDERS / KDS ---------- */
+const COLS = [
+  {id:'waiting', label:'Chờ xác nhận', cls:'col-waiting'},
+  {id:'cooking', label:'Đang làm', cls:'col-cooking'},
+  {id:'ready', label:'Sẵn sàng lấy', cls:'col-ready'},
+  {id:'done', label:'Đã lấy', cls:'col-done'},
+];
+
+let orders = [
+  {num:'A42', slot:'11:10', time:'11:04', items:['Cơm sườn nướng ×1','Trà đào ×1'], status:'waiting', late:true},
+  {num:'A43', slot:'11:15', time:'11:06', items:['Bún chả ×2'], status:'waiting'},
+  {num:'A44', slot:'11:15', time:'11:07', items:['Cơm chay ×1','Nước cam ×1'], status:'cooking'},
+  {num:'A45', slot:'11:15', time:'11:08', items:['Bánh tráng trộn ×1'], status:'cooking'},
+  {num:'A46', slot:'11:20', time:'11:09', items:['Cơm sườn nướng ×2'], status:'ready'},
+  {num:'A47', slot:'11:20', time:'11:10', items:['Xúc xích chiên ×3'], status:'ready'},
+  {num:'A48', slot:'11:10', time:'10:58', items:['Bún chả ×1'], status:'done'},
+];
+
+const NEXT = {waiting:'cooking', cooking:'ready', ready:'done'};
+
+function renderKDS(){
+  const wrap = document.getElementById('kdsCols');
+  wrap.innerHTML = '';
+  COLS.forEach(col => {
+    const list = orders.filter(o => o.status === col.id);
+    const div = document.createElement('div');
+    div.className = 'kds-col ' + col.cls;
+    div.innerHTML = `<h4>${col.label} <span class="count-badge mono">${list.length}</span></h4>`;
+    if(list.length === 0){
+      div.innerHTML += `<div class="empty-col">Không có đơn</div>`;
+    } else {
+      list.forEach(o => {
+        const card = document.createElement('div');
+        card.className = 'order-card';
+        card.innerHTML = `
+          <div class="top-row"><span class="order-num">${o.num}</span><span class="order-time mono">${o.time}${o.late?' <span class="late-tag">TRỄ</span>':''}</span></div>
+          <div class="order-slot">Khung giờ: <b>${o.slot}</b></div>
+          <div class="order-items">${o.items.map(i=>`<div>• ${i}</div>`).join('')}</div>
+        `;
+        if(NEXT[o.status]){
+          card.title = 'Bấm để chuyển sang bước tiếp theo';
+          card.onclick = () => { o.status = NEXT[o.status]; renderKDS(); };
+        }
+        div.appendChild(card);
+      });
+    }
+    wrap.appendChild(div);
+  });
+}
+renderKDS();
+
+/* ---------- MENU / INVENTORY ---------- */
+let menuItems = [
+  {icon:'🍖', name:'Cơm sườn nướng', price:25000, stock:14, on:true, sold:38},
+  {icon:'🍜', name:'Bún chả', price:22000, stock:3, on:true, sold:24},
+  {icon:'🍗', name:'Cơm gà xối mỡ', price:23000, stock:0, on:false, sold:31},
+  {icon:'🥗', name:'Cơm chay', price:18000, stock:20, on:true, sold:9},
+  {icon:'🧋', name:'Trà đào', price:12000, stock:30, on:true, sold:41},
+  {icon:'🍊', name:'Nước cam ép', price:15000, stock:8, on:true, sold:17},
+  {icon:'🌯', name:'Bánh tráng trộn', price:15000, stock:12, on:true, sold:19},
+  {icon:'🌭', name:'Xúc xích chiên', price:10000, stock:5, on:true, sold:22},
+];
+
+function money(n){ return n.toLocaleString('vi-VN') + 'đ'; }
+
+function renderMenu(){
+  const body = document.getElementById('menuBody');
+  body.innerHTML = '';
+  menuItems.forEach((it, idx) => {
+    const status = !it.on ? '<span class="badge off">Đang tắt</span>' : (it.stock===0 ? '<span class="badge low">Hết món</span>' : it.stock<=5 ? '<span class="badge low">Sắp hết</span>' : '<span class="badge ok">Còn hàng</span>');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="icon-cell">${it.icon}</td>
+      <td>${it.name}</td>
+      <td class="mono">${money(it.price)}</td>
+      <td><input class="stock-input mono" type="number" min="0" value="${it.stock}" data-idx="${idx}"></td>
+      <td>${status}</td>
+      <td><div class="toggle ${it.on?'on':''}" data-idx="${idx}"></div></td>
+    `;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll('.stock-input').forEach(inp => {
+    inp.onchange = () => { menuItems[+inp.dataset.idx].stock = Math.max(0, +inp.value || 0); renderMenu(); };
+  });
+  body.querySelectorAll('.toggle').forEach(tg => {
+    tg.onclick = () => { const it = menuItems[+tg.dataset.idx]; it.on = !it.on; renderMenu(); };
+  });
+}
+renderMenu();
+
+/* ---------- STATS ---------- */
+const slotData = [
+  {t:'10:55', v:6}, {t:'11:00', v:14}, {t:'11:05', v:22}, {t:'11:10', v:29},
+  {t:'11:15', v:32}, {t:'11:20', v:18}, {t:'11:25', v:9}, {t:'11:30', v:4},
+];
+function renderBars(){
+  const wrap = document.getElementById('barsWrap');
+  const max = Math.max(...slotData.map(s=>s.v));
+  wrap.innerHTML = slotData.map(s => `
+    <div class="bar-col">
+      <div class="bar ${s.v===max?'peak':''}" style="height:${(s.v/max*100)}%"></div>
+      <div class="bar-lbl">${s.t}</div>
+    </div>
+  `).join('');
+}
+renderBars();
+
+function renderTopItems(){
+  const top = [...menuItems].sort((a,b)=>b.sold-a.sold).slice(0,5);
+  document.getElementById('topItems').innerHTML = top.map((it,i)=>`
+    <div class="top-item"><span class="rank">${i+1}</span><span class="n">${it.icon} ${it.name}</span><span class="v">${it.sold} suất</span></div>
+  `).join('');
+}
+renderTopItems();
+</script>
+</body>
+</html>
