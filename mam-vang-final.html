@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mâm Vàng — Đặt món căn tin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --lacquer:#1C1A17;
+    --lacquer-2:#262119;
+    --gold:#C9972B;
+    --gold-light:#E4B85A;
+    --gold-dim:#9C7A2C;
+    --cream:#FAF6EE;
+    --cream-2:#F1EADB;
+    --ink:#2B2822;
+    --ink-soft:#6B6459;
+    --red:#B23A2E;
+    --red-bg:#F7E3E0;
+    --green:#3F6B52;
+    --green-bg:#E4EDE7;
+    --line:#E1D7C0;
+    --shadow: 0 2px 0 rgba(28,26,23,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Manrope',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{font-family:'Fraunces',serif;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+  a{color:inherit;}
+  .hidden{display:none !important;}
+  ::selection{background:var(--gold-light);color:var(--lacquer);}
+
+  /* ---------- LOGIN ---------- */
+  #login-screen{
+    min-height:100vh;
+    display:flex;
+  }
+  .login-left{
+    flex:1.1;
+    background:var(--lacquer);
+    color:var(--cream);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:56px 56px;
+    position:relative;
+    overflow:hidden;
+  }
+  .login-left::before{
+    content:"";
+    position:absolute;
+    right:-120px; top:-120px;
+    width:420px;height:420px;
+    border-radius:50%;
+    border:1px solid rgba(201,151,43,0.35);
+  }
+  .login-left::after{
+    content:"";
+    position:absolute;
+    right:-40px; top:-40px;
+    width:260px;height:260px;
+    border-radius:50%;
+    border:1px solid rgba(201,151,43,0.25);
+  }
+  .brand-mark{font-size:14px;letter-spacing:.08em;color:var(--gold-light);text-transform:uppercase;font-weight:700;}
+  .login-left h1{font-size:52px;line-height:1.05;margin:22px 0 18px;font-weight:600;max-width:9ch;}
+  .login-left p{font-size:16px;line-height:1.6;color:#D9D2C4;max-width:38ch;}
+  .login-stats{display:flex;gap:36px;margin-top:40px;position:relative;z-index:1;}
+  .login-stats div b{display:block;font-family:'Fraunces',serif;font-size:30px;color:var(--gold-light);font-weight:600;}
+  .login-stats div span{font-size:13px;color:#B9B1A0;}
+  .login-foot{font-size:13px;color:#9A9384;position:relative;z-index:1;}
+
+  .login-right{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px;
+    background:var(--cream);
+  }
+  .login-card{width:100%;max-width:380px;}
+  .login-card h2{font-size:26px;margin:0 0 6px;font-weight:600;}
+  .login-card .sub{color:var(--ink-soft);font-size:14px;margin-bottom:28px;}
+  .tabbar{display:flex;border-bottom:1px solid var(--line);margin-bottom:24px;}
+  .tabbar button{
+    flex:1;background:none;border:none;padding:10px 0;font-size:14px;font-weight:700;
+    color:var(--ink-soft);border-bottom:2px solid transparent;
+  }
+  .tabbar button.active{color:var(--ink);border-bottom-color:var(--gold);}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+  .field input, .field select{
+    width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:3px;
+    font-size:14px;background:#fff;color:var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--gold-light);outline-offset:1px;}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:11px 20px;border-radius:3px;border:none;font-weight:700;font-size:14px;
+  }
+  .btn-primary{background:var(--lacquer);color:var(--gold-light);width:100%;}
+  .btn-primary:hover{background:#000;}
+  .btn-gold{background:var(--gold);color:var(--lacquer);}
+  .btn-gold:hover{background:var(--gold-light);}
+  .btn-outline{background:transparent;border:1px solid var(--line);color:var(--ink);}
+  .btn-outline:hover{border-color:var(--ink);}
+  .btn-danger{background:var(--red);color:#fff;}
+  .btn-ghost{background:none;border:none;color:var(--ink-soft);text-decoration:underline;font-size:13px;}
+  .btn-block{width:100%;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .msg{font-size:13px;padding:10px 12px;border-radius:3px;margin-bottom:16px;}
+  .msg.err{background:var(--red-bg);color:var(--red);}
+  .msg.ok{background:var(--green-bg);color:var(--green);}
+  .demo-accounts{margin-top:22px;font-size:12px;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:16px;}
+  .demo-accounts b{color:var(--ink);}
+  .demo-accounts code{background:var(--cream-2);padding:1px 5px;border-radius:2px;}
+
+  /* ---------- APP SHELL ---------- */
+  #app-screen{min-height:100vh;display:none;flex-direction:column;}
+  .topbar{
+    background:var(--lacquer);color:var(--cream);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 28px;height:62px;flex-shrink:0;
+  }
+  .topbar .brand{font-family:'Fraunces',serif;font-weight:600;font-size:19px;color:var(--gold-light);display:flex;align-items:center;gap:8px;}
+  .topbar .brand .dot{width:8px;height:8px;background:var(--gold);border-radius:50%;display:inline-block;}
+  .topnav{display:flex;gap:2px;}
+  .topnav button{
+    background:none;border:none;color:#C9C2B2;padding:10px 16px;font-size:14px;font-weight:600;
+    border-bottom:2px solid transparent;
+  }
+  .topnav button.active{color:var(--gold-light);border-bottom-color:var(--gold);}
+  .topbar-right{display:flex;align-items:center;gap:18px;}
+  .wallet-pill{
+    background:var(--lacquer-2);border:1px solid #45402f;padding:7px 14px;border-radius:20px;
+    font-size:13px;display:flex;align-items:center;gap:8px;
+  }
+  .wallet-pill b{color:var(--gold-light);font-family:'Fraunces',serif;font-size:14px;}
+  .cart-btn{
+    position:relative;background:var(--gold);color:var(--lacquer);border:none;border-radius:20px;
+    padding:8px 16px;font-weight:700;font-size:13px;
+  }
+  .cart-btn .badge{
+    position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;
+    border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;
+  }
+  .user-chip{font-size:13px;color:#D9D2C4;}
+  .user-chip b{color:#fff;}
+  .logout-link{color:#B9B1A0;font-size:12px;text-decoration:underline;background:none;border:none;}
+
+  .content{flex:1;padding:28px 32px 60px;max-width:1180px;margin:0 auto;width:100%;}
+  .page-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px;}
+  .page-head h2{font-size:24px;margin:0;font-weight:600;}
+  .page-head .desc{color:var(--ink-soft);font-size:13.5px;}
+
+  /* chips / categories */
+  .chiprow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+  .chip{
+    background:#fff;border:1px solid var(--line);padding:8px 16px;border-radius:20px;
+    font-size:13px;font-weight:700;color:var(--ink-soft);
+  }
+  .chip.active{background:var(--lacquer);color:var(--gold-light);border-color:var(--lacquer);}
+
+  /* menu grid */
+  .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+  .food-card{background:#fff;border:1px solid var(--line);border-radius:4px;overflow:hidden;display:flex;flex-direction:column;}
+  .food-img{
+    height:96px;display:flex;align-items:center;justify-content:center;font-size:40px;
+    background:var(--cream-2);
+  }
+  .food-body{padding:14px;display:flex;flex-direction:column;gap:6px;flex:1;}
+  .food-cat{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gold-dim);font-weight:700;}
+  .food-name{font-weight:700;font-size:15px;line-height:1.3;}
+  .food-price{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--ink);}
+  .food-status{font-size:12px;font-weight:700;}
+  .food-status.out{color:var(--red);}
+  .food-status.in{color:var(--green);}
+  .food-foot{margin-top:auto;display:flex;align-items:center;gap:8px;padding-top:8px;}
+  .qty-stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:3px;}
+  .qty-stepper button{background:none;border:none;width:26px;height:30px;font-size:15px;color:var(--ink);}
+  .qty-stepper span{width:22px;text-align:center;font-size:13px;font-weight:700;}
+  .add-btn{flex:1;background:var(--lacquer);color:var(--gold-light);border:none;border-radius:3px;padding:8px 10px;font-size:12.5px;font-weight:700;}
+  .add-btn:disabled{background:var(--line);color:var(--ink-soft);}
+
+  /* cart drawer */
+  .overlay{position:fixed;inset:0;background:rgba(28,26,23,.4);display:none;z-index:40;}
+  .overlay.show{display:block;}
+  .drawer{
+    position:fixed;top:0;right:0;height:100%;width:400px;max-width:92vw;background:#fff;
+    z-index:41;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;
+  }
+  .drawer.show{transform:translateX(0);}
+  .drawer-head{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .drawer-head h3{margin:0;font-size:19px;}
+  .drawer-close{background:none;border:none;font-size:20px;color:var(--ink-soft);}
+  .drawer-body{flex:1;overflow-y:auto;padding:16px 22px;}
+  .drawer-foot{padding:18px 22px;border-top:1px solid var(--line);}
+  .cart-line{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--cream-2);}
+  .cart-line .info{flex:1;}
+  .cart-line .name{font-weight:700;font-size:14px;}
+  .cart-line .unit{font-size:12px;color:var(--ink-soft);}
+  .cart-line .linetotal{font-weight:700;font-size:14px;}
+  .cart-remove{background:none;border:none;color:var(--red);font-size:12px;text-decoration:underline;padding:0;margin-top:4px;}
+  .subtotal-row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;color:var(--ink-soft);}
+  .total-row{display:flex;justify-content:space-between;font-size:19px;font-family:'Fraunces',serif;font-weight:600;margin:10px 0 16px;}
+  .empty-note{color:var(--ink-soft);font-size:14px;text-align:center;padding:40px 10px;}
+
+  /* checkout steps */
+  .steps-row{display:flex;gap:0;margin-bottom:26px;}
+  .step-pill{flex:1;text-align:center;font-size:12px;font-weight:700;color:var(--ink-soft);padding-bottom:10px;border-bottom:2px solid var(--line);}
+  .step-pill.active{color:var(--ink);border-bottom-color:var(--gold);}
+  .step-pill.done{color:var(--green);}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:4px;padding:24px;max-width:560px;}
+  .slot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:22px;}
+  .slot-card{border:1px solid var(--line);border-radius:3px;padding:12px;text-align:left;background:#fff;}
+  .slot-card .t{font-weight:700;font-size:14px;}
+  .slot-card .c{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .slot-card.selected{border-color:var(--gold);background:#FDF7EB;}
+  .slot-card.full{opacity:.5;}
+  .pay-option{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:3px;padding:14px;margin-bottom:10px;}
+  .pay-option.selected{border-color:var(--gold);background:#FDF7EB;}
+  .pay-option .pname{font-weight:700;font-size:14px;}
+  .pay-option .psub{font-size:12px;color:var(--ink-soft);}
+  .order-summary-line{display:flex;justify-content:space-between;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--cream-2);}
+
+  .success-box{text-align:center;padding:30px 10px;}
+  .order-code{
+    font-family:'Fraunces',serif;font-size:44px;font-weight:600;letter-spacing:.03em;
+    background:var(--lacquer);color:var(--gold-light);padding:18px 26px;border-radius:6px;
+    display:inline-block;margin:18px 0;
+  }
+
+  /* order list (student) */
+  .order-card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:16px 18px;margin-bottom:12px;}
+  .order-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+  .order-code-sm{font-family:'Fraunces',serif;font-weight:600;font-size:17px;}
+  .status-badge{padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap;}
+  .status-Mới{background:#EAE3D2;color:var(--gold-dim);}
+  .status-Đang_làm{background:#E1E9F5;color:#33538C;}
+  .status-Sẵn_sàng{background:var(--green-bg);color:var(--green);}
+  .status-Đã_lấy{background:#EDEDED;color:#5A5648;}
+  .status-Đã_hủy{background:var(--red-bg);color:var(--red);}
+  .order-items-list{font-size:13px;color:var(--ink-soft);margin:8px 0;}
+  .order-card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:var(--ink-soft);}
+  .late-badge{background:var(--red);color:#fff;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+
+  /* staff KDS */
+  .kds-board{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .kds-col-head{font-weight:700;font-size:14px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--line);display:flex;justify-content:space-between;}
+  .kds-card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:14px;margin-bottom:12px;}
+  .kds-card.late{border-color:var(--red);}
+  .kds-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .kds-code{font-family:'Fraunces',serif;font-weight:600;font-size:16px;}
+  .kds-slot{font-size:12px;color:var(--ink-soft);}
+  .kds-items{font-size:13px;margin:6px 0;color:var(--ink);}
+  .kds-pay{font-size:12px;color:var(--ink-soft);margin-bottom:10px;}
+  .kds-actions{display:flex;gap:8px;}
+  .kds-actions .btn{flex:1;padding:9px 6px;font-size:13px;}
+  .reject-box{margin-top:10px;}
+  .reject-box input{width:100%;padding:8px;font-size:12.5px;border:1px solid var(--line);border-radius:3px;margin-bottom:6px;}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;background:#fff;}
+  th,td{text-align:left;padding:11px 14px;font-size:13.5px;border-bottom:1px solid var(--cream-2);}
+  th{background:var(--cream-2);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);}
+  .table-wrap{border:1px solid var(--line);border-radius:4px;overflow:hidden;}
+  .row-actions{display:flex;gap:12px;}
+  .row-actions button{background:none;border:none;font-size:12.5px;font-weight:700;color:var(--gold-dim);text-decoration:underline;}
+  .row-actions button.danger{color:var(--red);}
+  .pill-toggle{border:none;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700;}
+  .pill-toggle.in{background:var(--green-bg);color:var(--green);}
+  .pill-toggle.out{background:var(--red-bg);color:var(--red);}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  .card-box{background:#fff;border:1px solid var(--line);border-radius:4px;padding:20px;}
+  .card-box h3{margin:0 0 14px;font-size:16px;}
+  .stat-row{display:flex;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+  .stat-box{flex:1;min-width:150px;background:#fff;border:1px solid var(--line);border-radius:4px;padding:16px 18px;}
+  .stat-box .label{font-size:12px;color:var(--ink-soft);font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+  .stat-box .value{font-family:'Fraunces',serif;font-size:28px;font-weight:600;margin-top:4px;}
+  .bar-chart{display:flex;align-items:flex-end;gap:10px;height:180px;padding-top:10px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+  .bar-fill{width:100%;background:var(--gold);border-radius:2px 2px 0 0;position:relative;}
+  .bar-fill span{position:absolute;top:-20px;left:0;right:0;text-align:center;font-size:11.5px;font-weight:700;}
+  .bar-label{font-size:11px;color:var(--ink-soft);margin-top:8px;text-align:center;}
+  .top-item-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--cream-2);font-size:13.5px;}
+  .top-item-row:last-child{border-bottom:none;}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(28,26,23,.45);display:none;align-items:center;justify-content:center;z-index:50;}
+  .modal-overlay.show{display:flex;}
+  .modal-box{background:#fff;border-radius:5px;width:100%;max-width:440px;padding:26px;max-height:88vh;overflow-y:auto;}
+  .modal-box h3{margin:0 0 18px;font-size:18px;}
+  .form-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  .stars{font-size:22px;letter-spacing:4px;cursor:pointer;color:var(--line);}
+  .stars span.filled{color:var(--gold);}
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--ink-soft);}
+  .empty-state .big{font-size:40px;margin-bottom:10px;}
+
+  @media(max-width:880px){
+    #login-screen{flex-direction:column;}
+    .login-left{padding:34px 26px;min-height:220px;}
+    .login-left h1{font-size:34px;}
+    .login-stats{display:none;}
+    .content{padding:20px 16px 50px;}
+    .topbar{padding:0 14px;flex-wrap:wrap;height:auto;padding-top:10px;padding-bottom:10px;gap:8px;}
+    .topnav{order:3;width:100%;overflow-x:auto;}
+    .kds-board{grid-template-columns:1fr;}
+    .grid-2{grid-template-columns:1fr;}
+    .drawer{width:100%;max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN SCREEN ================= -->
+<div id="login-screen">
+  <div class="login-left">
+    <div>
+      <div class="brand-mark">Căn tin thông minh</div>
+      <h1>Mâm Vàng</h1>
+      <p>Đặt món từ trước, chọn khung giờ nhận — không còn xếp hàng chờ giữa giờ ra chơi ngắn ngủi.</p>
+    </div>
+    <div>
+      <div class="login-stats">
+        <div><b>3</b><span>vai trò sử dụng</span></div>
+        <div><b>10′</b><span>giờ ra chơi</span></div>
+        <div><b>0</b><span>phút xếp hàng</span></div>
+      </div>
+      <div class="login-foot" style="margin-top:26px;">Đồ án nhóm Tây Thi — phiên bản demo, dữ liệu mô phỏng.</div>
+    </div>
+  </div>
+  <div class="login-right">
+    <div class="login-card">
+      <div class="tabbar">
+        <button id="tab-login-btn" class="active" onclick="switchAuthTab('login')">Đăng nhập</button>
+        <button id="tab-register-btn" onclick="switchAuthTab('register')">Đăng ký (Sinh viên)</button>
+      </div>
+
+      <div id="auth-msg"></div>
+
+      <!-- LOGIN FORM -->
+      <form id="login-form" onsubmit="return handleLogin(event)">
+        <h2>Chào mừng trở lại</h2>
+        <div class="sub">Đăng nhập để đặt món hoặc quản lý căn tin.</div>
+        <div class="field">
+          <label>Email / Mã số SV / Tên đăng nhập</label>
+          <input type="text" id="login-id" placeholder="vd. SV2024001" required>
+        </div>
+        <div class="field">
+          <label>Mật khẩu</label>
+          <input type="password" id="login-pass" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+        <div class="demo-accounts">
+          <div style="margin-bottom:6px;"><b>Tài khoản demo</b></div>
+          Sinh viên: <code>SV2024001</code> / <code>123456</code><br>
+          Nhân viên căn tin: <code>nhanvien1</code> / <code>123456</code><br>
+          Quản trị viên: <code>admin</code> / <code>admin123</code>
+        </div>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form id="register-form" class="hidden" onsubmit="return handleRegister(event)">
+        <h2>Tạo tài khoản sinh viên</h2>
+        <div class="sub">Dùng email hoặc mã số sinh viên để đăng ký.</div>
+        <div class="field">
+          <label>Họ và tên</label>
+          <input type="text" id="reg-name" required>
+        </div>
+        <div class="field">
+          <label>Email hoặc mã số sinh viên</label>
+          <input type="text" id="reg-id" placeholder="vd. SV2024099" required>
+        </div>
+        <div class="field">
+          <label>Mật khẩu</label>
+          <input type="password" id="reg-pass" required minlength="4">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Đăng ký</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP SHELL ================= -->
+<div id="app-screen">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span> Mâm Vàng</div>
+    <div class="topnav" id="topnav"></div>
+    <div class="topbar-right" id="topbar-right"></div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<!-- Cart drawer -->
+<div class="overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="drawer" id="cart-drawer">
+  <div class="drawer-head">
+    <h3>Giỏ hàng của bạn</h3>
+    <button class="drawer-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="drawer-body" id="cart-body"></div>
+  <div class="drawer-foot" id="cart-foot"></div>
+</div>
+
+<!-- Generic modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box" id="modal-box"></div>
+</div>
+
+<script>
+/* =========================================================
+   MÂM VÀNG — DEMO PROTOTYPE (dữ liệu mô phỏng, không backend)
+   ========================================================= */
+
+/* ---------- SEED DATA ---------- */
+let state = {
+  currentUser: null,
+  users: [
+    {id:'u1', role:'student', name:'Nguyễn Văn A', loginId:'SV2024001', phone:'0901234567', className:'12A3', password:'123456', wallet:50000},
+    {id:'u2', role:'student', name:'Trần Thị B', loginId:'SV2024002', phone:'0909876543', className:'11B1', password:'123456', wallet:15000},
+    {id:'u3', role:'staff', name:'Lê Thị Sáu', loginId:'nhanvien1', password:'123456'},
+    {id:'u4', role:'admin', name:'Phạm Quản Trị', loginId:'admin', password:'admin123'},
+  ],
+  walletMax: 300000,
+  categories: ['Món chính','Đồ uống','Ăn vặt','Tráng miệng'],
+  menu: [
+    {id:'m1', name:'Cơm gà xối mỡ', cat:'Món chính', price:35000, icon:'🍗', available:true},
+    {id:'m2', name:'Bún bò Huế', cat:'Món chính', price:40000, icon:'🍜', available:true},
+    {id:'m3', name:'Phở bò', cat:'Món chính', price:40000, icon:'🍲', available:true},
+    {id:'m4', name:'Cơm tấm sườn', cat:'Món chính', price:35000, icon:'🍛', available:false},
+    {id:'m5', name:'Mì xào hải sản', cat:'Món chính', price:38000, icon:'🍝', available:true},
+    {id:'m6', name:'Trà đào cam sả', cat:'Đồ uống', price:20000, icon:'🍹', available:true},
+    {id:'m7', name:'Nước cam ép', cat:'Đồ uống', price:18000, icon:'🧃', available:true},
+    {id:'m8', name:'Trà sữa trân châu', cat:'Đồ uống', price:25000, icon:'🧋', available:true},
+    {id:'m9', name:'Nước suối', cat:'Đồ uống', price:10000, icon:'💧', available:true},
+    {id:'m10', name:'Bánh tráng trộn', cat:'Ăn vặt', price:15000, icon:'🥗', available:true},
+    {id:'m11', name:'Khoai tây chiên', cat:'Ăn vặt', price:20000, icon:'🍟', available:true},
+    {id:'m12', name:'Xúc xích chiên', cat:'Ăn vặt', price:12000, icon:'🌭', available:false},
+    {id:'m13', name:'Chè khúc bạch', cat:'Tráng miệng', price:18000, icon:'🍧', available:true},
+    {id:'m14', name:'Bánh flan', cat:'Tráng miệng', price:12000, icon:'🍮', available:true},
+  ],
+  timeslots: [
+    {id:'t1', label:'9:30 - 9:40', capacity:15, booked:15},
+    {id:'t2', label:'9:40 - 9:50', capacity:15, booked:9},
+    {id:'t3', label:'9:50 - 10:00', capacity:15, booked:3},
+  ],
+  orders: [],
+  orderSeq: 1000,
+  cart: [], // {menuId, qty}
+  activeCategory: 'Tất cả',
+  studentTab: 'menu',
+  staffTab: 'board',
+  adminTab: 'menu',
+  checkoutStep: null, // 'slot' | 'pay' | 'success'
+  selectedSlot: null,
+  selectedPay: null,
+  cartOpen: false,
+  lookupCode: '',
+  editingMenuId: null,
+  reviewingOrderId: null,
+};
+
+// seed a couple of demo orders so the app doesn't look empty
+function seedOrders(){
+  const now = Date.now();
+  state.orders.push({
+    id:'o1', code:'MV1001', studentId:'u1',
+    items:[{menuId:'m2', name:'Bún bò Huế', price:40000, qty:1}],
+    slotId:'t1', slotLabel:'9:30 - 9:40', total:40000, pay:'wallet',
+    status:'Đang làm', createdAt: now - 6*60000, review:null,
+  });
+  state.orders.push({
+    id:'o2', code:'MV1002', studentId:'u2',
+    items:[{menuId:'m6', name:'Trà đào cam sả', price:20000, qty:2}],
+    slotId:'t2', slotLabel:'9:40 - 9:50', total:40000, pay:'cash',
+    status:'Mới', createdAt: now - 1*60000, review:null,
+  });
+}
+seedOrders();
+
+/* ---------- HELPERS ---------- */
+function money(n){ return n.toLocaleString('vi-VN') + '₫'; }
+function findUser(loginId){ return state.users.find(u => u.loginId === loginId); }
+function menuById(id){ return state.menu.find(m => m.id === id); }
+function slotById(id){ return state.timeslots.find(t => t.id === id); }
+function studentOrders(uid){ return state.orders.filter(o => o.studentId === uid).sort((a,b)=>b.createdAt-a.createdAt); }
+function cartCount(){ return state.cart.reduce((s,c)=>s+c.qty,0); }
+function cartTotal(){ return state.cart.reduce((s,c)=>s + menuById(c.menuId).price * c.qty, 0); }
+function isLate(order){
+  if(!['Mới','Đang làm'].includes(order.status)) return false;
+  // simulate: order considered late if it has existed > 8 min (demo purposes)
+  return (Date.now() - order.createdAt) > 8*60000;
+}
+function escapeHtml(s){ const d=document.createElement('div'); d.innerText=s; return d.innerHTML; }
+
+/* ---------- AUTH ---------- */
+function switchAuthTab(which){
+  document.getElementById('tab-login-btn').classList.toggle('active', which==='login');
+  document.getElementById('tab-register-btn').classList.toggle('active', which==='register');
+  document.getElementById('login-form').classList.toggle('hidden', which!=='login');
+  document.getElementById('register-form').classList.toggle('hidden', which!=='register');
+  document.getElementById('auth-msg').innerHTML = '';
+}
+
+function handleLogin(e){
+  e.preventDefault();
+  const id = document.getElementById('login-id').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const user = findUser(id);
+  const msg = document.getElementById('auth-msg');
+  if(!user || user.password !== pass){
+    msg.innerHTML = '<div class="msg err">Sai thông tin đăng nhập. Vui lòng kiểm tra lại.</div>';
+    return false;
+  }
+  state.currentUser = user;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'flex';
+  routeInit();
+  return false;
+}
+
+function handleRegister(e){
+  e.preventDefault();
+  const name = document.getElementById('reg-name').value.trim();
+  const id = document.getElementById('reg-id').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const msg = document.getElementById('auth-msg');
+  if(findUser(id)){
+    msg.innerHTML = '<div class="msg err">Email / mã số sinh viên này đã được đăng ký.</div>';
+    return false;
+  }
+  const newUser = {id:'u'+(state.users.length+1), role:'student', name, loginId:id, phone:'', className:'', password:pass, wallet:0};
+  state.users.push(newUser);
+  msg.innerHTML = '<div class="msg ok">Đăng ký thành công! Hãy đăng nhập để bắt đầu đặt món.</div>';
+  switchAuthTab('login');
+  document.getElementById('auth-msg').innerHTML = '<div class="msg ok">Đăng ký thành công, mời đăng nhập.</div>';
+}
+
+function logout(){
+  state.currentUser = null;
+  state.cart = [];
+  state.checkoutStep = null;
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-form').reset();
+}
+
+/* ---------- ROUTING / SHELL ---------- */
+function routeInit(){
+  const u = state.currentUser;
+  const nav = document.getElementById('topnav');
+  const right = document.getElementById('topbar-right');
+
+  let tabs = [];
+  if(u.role==='student') tabs = [['menu','Thực đơn'],['orders','Đơn của tôi']];
+  if(u.role==='staff') tabs = [['board','Bảng đơn hàng'],['topup','Nạp tiền ví'],['lookup','Tra cứu đơn']];
+  if(u.role==='admin') tabs = [['menu','Thực đơn'],['users','Người dùng'],['wallet','Ví Mâm Vàng'],['reports','Báo cáo']];
+
+  const activeTab = u.role==='student' ? state.studentTab : (u.role==='staff'? state.staffTab : state.adminTab);
+  nav.innerHTML = tabs.map(([key,label]) =>
+    `<button class="${activeTab===key?'active':''}" onclick="setTab('${key}')">${label}</button>`
+  ).join('');
+
+  let rightHtml = '';
+  if(u.role==='student'){
+    rightHtml += `<div class="wallet-pill">Ví: <b>${money(u.wallet)}</b></div>`;
+    rightHtml += `<button class="cart-btn" onclick="openCart()">Giỏ hàng ${cartCount()>0?`<span class="badge">${cartCount()}</span>`:''}</button>`;
+  }
+  rightHtml += `<div class="user-chip"><b>${escapeHtml(u.name)}</b></div>`;
+  rightHtml += `<button class="logout-link" onclick="logout()">Đăng xuất</button>`;
+  right.innerHTML = rightHtml;
+
+  render();
+}
+
+function setTab(key){
+  const u = state.currentUser;
+  if(u.role==='student') state.studentTab = key;
+  if(u.role==='staff') state.staffTab = key;
+  if(u.role==='admin') state.adminTab = key;
+  state.checkoutStep = null;
+  routeInit();
+}
+
+function render(){
+  const u = state.currentUser;
+  if(u.role==='student') renderStudent();
+  if(u.role==='staff') renderStaff();
+  if(u.role==='admin') renderAdmin();
+}
+
+/* =========================================================
+   STUDENT VIEW
+   ========================================================= */
+function renderStudent(){
+  const c = document.getElementById('content');
+  if(state.checkoutStep){ c.innerHTML = renderCheckout(); return; }
+  if(state.studentTab === 'menu') c.innerHTML = renderMenuPage();
+  if(state.studentTab === 'orders') c.innerHTML = renderOrdersPage();
+}
+
+function renderMenuPage(){
+  const cats = ['Tất cả', ...state.categories];
+  const chips = cats.map(cat =>
+    `<button class="chip ${state.activeCategory===cat?'active':''}" onclick="setCategory('${cat}')">${cat}</button>`
+  ).join('');
+
+  const items = state.menu.filter(m => state.activeCategory==='Tất cả' || m.cat===state.activeCategory);
+  const cards = items.map(m => {
+    const qty = pendingQty[m.id] || 0;
+    return `
+    <div class="food-card">
+      <div class="food-img">${m.icon}</div>
+      <div class="food-body">
+        <div class="food-cat">${m.cat}</div>
+        <div class="food-name">${escapeHtml(m.name)}</div>
+        <div class="food-price">${money(m.price)}</div>
+        <div class="food-status ${m.available?'in':'out'}">${m.available?'Còn món':'Hết món'}</div>
+        <div class="food-foot">
+          ${m.available ? `
+            <div class="qty-stepper">
+              <button onclick="changeQty('${m.id}',-1)">−</button>
+              <span>${qty}</span>
+              <button onclick="changeQty('${m.id}',1)">+</button>
+            </div>
+            <button class="add-btn" ${qty===0?'disabled':''} onclick="addToCart('${m.id}')">Thêm vào giỏ</button>
+          ` : `<button class="add-btn" disabled>Hết món</button>`}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="page-head">
+      <div>
+        <h2>Thực đơn hôm nay</h2>
+        <div class="desc">Chọn món, thêm vào giỏ, rồi chọn khung giờ nhận phù hợp với tiết học của bạn.</div>
+      </div>
+    </div>
+    <div class="chiprow">${chips}</div>
+    <div class="menu-grid">${cards || '<div class="empty-state">Chưa có món trong danh mục này.</div>'}</div>
+  `;
+}
+
+// temp quantities picked before adding to cart (not yet in cart)
+let pendingQty = {};
+function changeQty(menuId, delta){
+  pendingQty[menuId] = Math.max(0, (pendingQty[menuId]||0) + delta);
+  // reflect immediately in the stepper without full re-render flicker
+  renderStudent();
+}
+function addToCart(menuId){
+  const q = pendingQty[menuId] || 0;
+  if(q<=0) return;
+  const existing = state.cart.find(c=>c.menuId===menuId);
+  if(existing) existing.qty += q; else state.cart.push({menuId, qty:q});
+  pendingQty[menuId] = 0;
+  routeInit();
+}
+function setCategory(cat){ state.activeCategory = cat; renderStudent(); }
+
+function openCart(){
+  state.cartOpen = true;
+  document.getElementById('cart-overlay').classList.add('show');
+  document.getElementById('cart-drawer').classList.add('show');
+  renderCartDrawer();
+}
+function closeCart(){
+  state.cartOpen = false;
+  document.getElementById('cart-overlay').classList.remove('show');
+  document.getElementById('cart-drawer').classList.remove('show');
+}
+function renderCartDrawer(){
+  const body = document.getElementById('cart-body');
+  const foot = document.getElementById('cart-foot');
+  if(state.cart.length===0){
+    body.innerHTML = '<div class="empty-note">Giỏ hàng đang trống.<br>Hãy thêm món từ thực đơn.</div>';
+    foot.innerHTML = '';
+    return;
+  }
+  body.innerHTML = state.cart.map(c => {
+    const m = menuById(c.menuId);
+    return `
+      <div class="cart-line">
+        <div class="info">
+          <div class="name">${escapeHtml(m.name)}</div>
+          <div class="unit">${money(m.price)} x ${c.qty}</div>
+          <button class="cart-remove" onclick="removeFromCart('${c.menuId}')">Xóa</button>
+        </div>
+        <div class="linetotal">${money(m.price*c.qty)}</div>
+      </div>`;
+  }).join('');
+  foot.innerHTML = `
+    <div class="subtotal-row"><span>Tạm tính</span><span>${money(cartTotal())}</span></div>
+    <div class="total-row"><span>Tổng cộng</span><span>${money(cartTotal())}</span></div>
+    <button class="btn btn-gold btn-block" onclick="goToCheckout()">Chọn khung giờ nhận →</button>
+  `;
+}
+function removeFromCart(menuId){
+  state.cart = state.cart.filter(c=>c.menuId!==menuId);
+  renderCartDrawer();
+  routeInit();
+}
+function goToCheckout(){
+  closeCart();
+  state.checkoutStep = 'slot';
+  state.selectedSlot = null;
+  state.selectedPay = null;
+  renderStudent();
+}
+
+function renderCheckout(){
+  const steps = ['slot','pay','success'];
+  const labels = {slot:'1. Khung giờ', pay:'2. Xác nhận & thanh toán', success:'3. Hoàn tất'};
+  const stepsHtml = steps.map(s => {
+    const cls = state.checkoutStep===s ? 'active' : (steps.indexOf(s) < steps.indexOf(state.checkoutStep) ? 'done' : '');
+    return `<div class="step-pill ${cls}">${labels[s]}</div>`;
+  }).join('');
+
+  let body = '';
+  if(state.checkoutStep === 'slot') body = renderSlotStep();
+  if(state.checkoutStep === 'pay') body = renderPayStep();
+  if(state.checkoutStep === 'success') body = renderSuccessStep();
+
+  return `
+    <div class="page-head"><h2>Đặt món</h2></div>
+    <div class="steps-row">${stepsHtml}</div>
+    ${body}
+  `;
+}
+
+function renderSlotStep(){
+  if(state.cart.length===0){
+    return `<div class="panel"><div class="empty-state">Giỏ hàng trống. <br><button class="btn btn-outline" style="margin-top:12px;" onclick="backToMenu()">Về thực đơn</button></div></div>`;
+  }
+  const slots = state.timeslots.map(t => {
+    const full = t.booked >= t.capacity;
+    const sel = state.selectedSlot === t.id;
+    return `
+      <button class="slot-card ${sel?'selected':''} ${full?'full':''}" ${full?'disabled':''} onclick="pickSlot('${t.id}')">
+        <div class="t">${t.label}</div>
+        <div class="c">${full? 'Đã đầy chỗ' : (t.capacity - t.booked) + ' chỗ trống'}</div>
+      </button>`;
+  }).join('');
+  return `
+    <div class="panel">
+      <h3 style="margin-top:0;">Chọn khung giờ nhận món</h3>
+      <div class="slot-grid">${slots}</div>
+      <button class="btn btn-gold btn-block" ${!state.selectedSlot?'disabled':''} onclick="goToPay()">Tiếp tục</button>
+    </div>
+  `;
+}
+function pickSlot(id){
+  const t = slotById(id);
+  if(t.booked >= t.capacity){
+    alert('Khung giờ này đã đầy chỗ, vui lòng chọn khung giờ khác.');
+    return;
+  }
+  state.selectedSlot = id;
+  renderStudent();
+}
+function goToPay(){
+  if(!state.selectedSlot) return;
+  state.checkoutStep = 'pay';
+  renderStudent();
+}
+function backToMenu(){
+  state.checkoutStep = null;
+  state.studentTab = 'menu';
+  routeInit();
+}
+
+function renderPayStep(){
+  const u = state.currentUser;
+  const slot = slotById(state.selectedSlot);
+  const total = cartTotal();
+  const walletOk = u.wallet >= total;
+  const itemsHtml = state.cart.map(c=>{
+    const m = menuById(c.menuId);
+    return `<div class="order-summary-line"><span>${escapeHtml(m.name)} x${c.qty}</span><span>${money(m.price*c.qty)}</span></div>`;
+  }).join('');
+
+  return `
+    <div class="panel" style="max-width:560px;">
+      <h3 style="margin-top:0;">Xác nhận đơn hàng</h3>
+      ${itemsHtml}
+      <div class="order-summary-line"><span>Khung giờ nhận</span><span>${slot.label}</span></div>
+      <div class="total-row"><span>Tổng tiền</span><span>${money(total)}</span></div>
+
+      <h3>Phương thức thanh toán</h3>
+      <div class="pay-option ${state.selectedPay==='wallet'?'selected':''}" onclick="pickPay('wallet')">
+        <input type="radio" ${state.selectedPay==='wallet'?'checked':''} readonly>
+        <div>
+          <div class="pname">Ví Mâm Vàng</div>
+          <div class="psub">Số dư hiện tại: ${money(u.wallet)} ${walletOk?'':'— không đủ số dư'}</div>
+        </div>
+      </div>
+      <div class="pay-option ${state.selectedPay==='cash'?'selected':''}" onclick="pickPay('cash')">
+        <input type="radio" ${state.selectedPay==='cash'?'checked':''} readonly>
+        <div>
+          <div class="pname">Tiền mặt</div>
+          <div class="psub">Thanh toán khi nhận món tại quầy</div>
+        </div>
+      </div>
+      <div id="pay-warning"></div>
+
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-outline" onclick="backToSlot()">← Quay lại</button>
+        <button class="btn btn-gold" style="flex:1;" onclick="confirmOrder()">Xác nhận đặt món</button>
+      </div>
+    </div>
+  `;
+}
+function pickPay(p){
+  const u = state.currentUser;
+  if(p==='wallet' && u.wallet < cartTotal()){
+    state.selectedPay = 'wallet';
+    renderStudent();
+    document.getElementById('pay-warning').innerHTML =
+      '<div class="msg err">Số dư Ví Mâm Vàng không đủ. Vui lòng chọn thanh toán tiền mặt, hoặc nạp thêm tiền tại quầy căn tin.</div>';
+    return;
+  }
+  state.selectedPay = p;
+  renderStudent();
+}
+function backToSlot(){ state.checkoutStep = 'slot'; renderStudent(); }
+
+function confirmOrder(){
+  const u = state.currentUser;
+  const total = cartTotal();
+  if(!state.selectedPay){ alert('Vui lòng chọn phương thức thanh toán.'); return; }
+  if(state.selectedPay==='wallet' && u.wallet < total){
+    document.getElementById('pay-warning').innerHTML =
+      '<div class="msg err">Số dư không đủ để thanh toán bằng ví. Vui lòng đổi phương thức.</div>';
+    return;
+  }
+  const slot = slotById(state.selectedSlot);
+  slot.booked += 1;
+  if(state.selectedPay==='wallet') u.wallet -= total;
+
+  state.orderSeq += 1;
+  const order = {
+    id:'o'+state.orderSeq, code:'MV'+state.orderSeq, studentId:u.id,
+    items: state.cart.map(c=>{ const m=menuById(c.menuId); return {menuId:c.menuId, name:m.name, price:m.price, qty:c.qty}; }),
+    slotId: slot.id, slotLabel: slot.label, total, pay: state.selectedPay,
+    status:'Mới', createdAt: Date.now(), review:null,
+  };
+  state.orders.push(order);
+  state.cart = [];
+  state.lastOrderCode = order.code;
+  state.checkoutStep = 'success';
+  routeInit();
+}
+
+function renderSuccessStep(){
+  return `
+    <div class="panel" style="max-width:480px;">
+      <div class="success-box">
+        <div style="color:var(--green);font-weight:700;">Đặt món thành công!</div>
+        <div class="order-code">${state.lastOrderCode}</div>
+        <div style="color:var(--ink-soft);font-size:13.5px;">Xuất trình mã này tại quầy khi đến nhận món.</div>
+        <div style="display:flex;gap:10px;margin-top:22px;">
+          <button class="btn btn-outline" style="flex:1;" onclick="backToMenu()">Đặt thêm món</button>
+          <button class="btn btn-gold" style="flex:1;" onclick="goToOrders()">Xem đơn của tôi</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function goToOrders(){
+  state.checkoutStep = null;
+  state.studentTab = 'orders';
+  routeInit();
+}
+
+function renderOrdersPage(){
+  const list = studentOrders(state.currentUser.id);
+  if(list.length===0){
+    return `<div class="page-head"><h2>Đơn của tôi</h2></div><div class="empty-state">Bạn chưa có đơn hàng nào.</div>`;
+  }
+  const cards = list.map(o => {
+    const minutesLeft = 5 - Math.floor((Date.now()-o.createdAt)/60000);
+    const canCancel = o.status==='Mới' && minutesLeft > 0;
+    const canReview = o.status==='Đã lấy' && !o.review;
+    return `
+      <div class="order-card">
+        <div class="order-card-top">
+          <div>
+            <div class="order-code-sm">${o.code}</div>
+            <div style="font-size:12.5px;color:var(--ink-soft);">Khung giờ: ${o.slotLabel} · ${o.pay==='wallet'?'Ví Mâm Vàng':'Tiền mặt'}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            ${isLate(o)?'<span class="late-badge">Trễ giờ</span>':''}
+            <span class="status-badge status-${o.status.replace(/ /g,'_')}">${o.status}</span>
+          </div>
+        </div>
+        <div class="order-items-list">${o.items.map(i=>`${escapeHtml(i.name)} x${i.qty}`).join(', ')}</div>
+        <div class="order-card-foot">
+          <span>Tổng: <b style="color:var(--ink);">${money(o.total)}</b></span>
+          <div style="display:flex;gap:14px;">
+            ${canCancel ? `<button class="btn-ghost" onclick="cancelOrder('${o.id}')">Hủy đơn (còn ${minutesLeft}p)</button>` : ''}
+            ${o.status==='Mới' && !canCancel ? `<span style="font-size:12px;color:var(--ink-soft);">Đã quá hạn hủy</span>`:''}
+            ${canReview ? `<button class="btn-ghost" onclick="openReview('${o.id}')">Đánh giá món</button>` : ''}
+            ${o.review ? `<span style="font-size:12px;color:var(--gold-dim);">Đã đánh giá ${'★'.repeat(o.review.stars)}</span>`:''}
+            ${o.status==='Đã hủy' && o.rejectReason ? `<span style="font-size:12px;color:var(--red);">Lý do: ${escapeHtml(o.rejectReason)}</span>`:''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  return `<div class="page-head"><h2>Đơn của tôi</h2><div class="desc">Trạng thái được cập nhật khi căn tin xử lý đơn.</div></div>${cards}`;
+}
+
+function cancelOrder(orderId){
+  const o = state.orders.find(x=>x.id===orderId);
+  if(!o || o.status!=='Mới') return;
+  if(!confirm('Xác nhận hủy đơn '+o.code+'?')) return;
+  o.status = 'Đã hủy';
+  o.rejectReason = 'Sinh viên tự hủy';
+  const slot = slotById(o.slotId);
+  if(slot) slot.booked = Math.max(0, slot.booked-1);
+  if(o.pay==='wallet'){
+    const u = state.users.find(x=>x.id===o.studentId);
+    if(u) u.wallet += o.total;
+  }
+  routeInit();
+}
+
+function openReview(orderId){
+  state.reviewingOrderId = orderId;
+  openModal(`
+    <h3>Đánh giá món ăn</h3>
+    <div id="star-picker" class="stars" style="margin-bottom:14px;">
+      ${[1,2,3,4,5].map(n=>`<span data-n="${n}" onclick="pickStar(${n})">★</span>`).join('')}
+    </div>
+    <div class="field">
+      <label>Nhận xét (không bắt buộc)</label>
+      <textarea id="review-comment" rows="3" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:3px;"></textarea>
+    </div>
+    <button class="btn btn-gold btn-block" onclick="submitReview()">Gửi đánh giá</button>
+  `);
+  window._starVal = 5;
+  pickStar(5);
+}
+function pickStar(n){
+  window._starVal = n;
+  document.querySelectorAll('#star-picker span').forEach(s=>{
+    s.classList.toggle('filled', parseInt(s.dataset.n) <= n);
+  });
+}
+function submitReview(){
+  const o = state.orders.find(x=>x.id===state.reviewingOrderId);
+  o.review = {stars: window._starVal, comment: document.getElementById('review-comment').value.trim()};
+  closeModal();
+  renderStudent();
+}
+
+/* =========================================================
+   STAFF VIEW
+   ========================================================= */
+function renderStaff(){
+  const c = document.getElementById('content');
+  if(state.staffTab==='board') c.innerHTML = renderStaffBoard();
+  if(state.staffTab==='topup') c.innerHTML = renderStaffTopup();
+  if(state.staffTab==='lookup') c.innerHTML = renderStaffLookup();
+}
+
+function renderStaffBoard(){
+  const cols = [
+    {status:'Mới', title:'Mới — Chờ xác nhận'},
+    {status:'Đang làm', title:'Đang làm'},
+    {status:'Sẵn sàng', title:'Sẵn sàng'},
+  ];
+  const colsHtml = cols.map(col => {
+    const orders = state.orders.filter(o=>o.status===col.status).sort((a,b)=>a.createdAt-b.createdAt);
+    const cards = orders.map(o => renderKdsCard(o)).join('') || `<div style="color:var(--ink-soft);font-size:13px;padding:20px 0;text-align:center;">Không có đơn</div>`;
+    return `
+      <div>
+        <div class="kds-col-head"><span>${col.title}</span><span>${orders.length}</span></div>
+        ${cards}
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="page-head">
+      <div><h2>Bảng đơn hàng</h2><div class="desc">Cập nhật tự động — không cần tải lại trang.</div></div>
+    </div>
+    <div class="kds-board">${colsHtml}</div>
+  `;
+}
+
+function renderKdsCard(o){
+  const late = isLate(o);
+  let actions = '';
+  if(o.status==='Mới'){
+    actions = `
+      <div class="kds-actions">
+        <button class="btn btn-gold" onclick="confirmOrderStaff('${o.id}')">Xác nhận</button>
+        <button class="btn btn-outline" onclick="toggleReject('${o.id}')">Từ chối</button>
+      </div>
+      <div class="reject-box hidden" id="reject-${o.id}">
+        <input type="text" id="reject-reason-${o.id}" placeholder="Lý do từ chối...">
+        <button class="btn btn-danger btn-block" onclick="rejectOrderStaff('${o.id}')">Xác nhận từ chối</button>
+      </div>`;
+  } else if(o.status==='Đang làm'){
+    actions = `<div class="kds-actions"><button class="btn btn-gold btn-block" onclick="advanceOrder('${o.id}','Sẵn sàng')">Món đã xong → Sẵn sàng</button></div>`;
+  } else if(o.status==='Sẵn sàng'){
+    actions = `<div class="kds-actions"><button class="btn btn-gold btn-block" onclick="advanceOrder('${o.id}','Đã lấy')">Sinh viên đã nhận → Đã lấy</button></div>`;
+  }
+  return `
+    <div class="kds-card ${late?'late':''}">
+      <div class="kds-top">
+        <span class="kds-code">${o.code}</span>
+        ${late?'<span class="late-badge">Trễ giờ</span>':''}
+      </div>
+      <div class="kds-slot">Khung giờ: ${o.slotLabel}</div>
+      <div class="kds-items">${o.items.map(i=>`${escapeHtml(i.name)} x${i.qty}`).join(', ')}</div>
+      <div class="kds-pay">Thanh toán: ${o.pay==='wallet'?'Ví Mâm Vàng (đã trừ)':'Tiền mặt khi nhận'} · Tổng ${money(o.total)}</div>
+      ${actions}
+    </div>`;
+}
+function confirmOrderStaff(id){
+  const o = state.orders.find(x=>x.id===id);
+  o.status = 'Đang làm';
+  renderStaff();
+}
+function toggleReject(id){
+  document.getElementById('reject-'+id).classList.toggle('hidden');
+}
+function rejectOrderStaff(id){
+  const reason = document.getElementById('reject-reason-'+id).value.trim();
+  if(!reason){ alert('Vui lòng nhập lý do từ chối.'); return; }
+  const o = state.orders.find(x=>x.id===id);
+  o.status = 'Đã hủy';
+  o.rejectReason = reason;
+  const slot = slotById(o.slotId);
+  if(slot) slot.booked = Math.max(0, slot.booked-1);
+  if(o.pay==='wallet'){
+    const u = state.users.find(x=>x.id===o.studentId);
+    if(u) u.wallet += o.total;
+  }
+  renderStaff();
+}
+function advanceOrder(id, next){
+  const o = state.orders.find(x=>x.id===id);
+  o.status = next;
+  renderStaff();
+}
+
+function renderStaffTopup(){
+  return `
+    <div class="page-head"><h2>Nạp tiền mặt vào Ví Mâm Vàng</h2><div class="desc">Tìm sinh viên bằng mã số hoặc số điện thoại, sau đó nhập số tiền cần nạp.</div></div>
+    <div class="panel">
+      <div class="field">
+        <label>Mã số sinh viên hoặc số điện thoại</label>
+        <input type="text" id="topup-search" placeholder="vd. SV2024001">
+      </div>
+      <div class="field">
+        <label>Số tiền nạp (đ)</label>
+        <input type="number" id="topup-amount" placeholder="vd. 50000" min="1000" step="1000">
+      </div>
+      <div id="topup-msg"></div>
+      <button class="btn btn-gold btn-block" onclick="doTopup()">Nạp tiền</button>
+      <div style="margin-top:14px;font-size:12.5px;color:var(--ink-soft);">Hạn mức tối đa hiện tại của ví: <b>${money(state.walletMax)}</b> (do quản trị viên thiết lập).</div>
+    </div>
+  `;
+}
+function doTopup(){
+  const key = document.getElementById('topup-search').value.trim();
+  const amount = parseInt(document.getElementById('topup-amount').value, 10);
+  const msgBox = document.getElementById('topup-msg');
+  const u = state.users.find(x => x.role==='student' && (x.loginId===key || x.phone===key));
+  if(!u){ msgBox.innerHTML = '<div class="msg err">Không tìm thấy sinh viên với thông tin này.</div>'; return; }
+  if(!amount || amount<=0){ msgBox.innerHTML = '<div class="msg err">Vui lòng nhập số tiền hợp lệ.</div>'; return; }
+  if(u.wallet + amount > state.walletMax){
+    msgBox.innerHTML = `<div class="msg err">Nạp thất bại — vượt hạn mức tối đa ${money(state.walletMax)} của Ví Mâm Vàng.</div>`;
+    return;
+  }
+  u.wallet += amount;
+  msgBox.innerHTML = `<div class="msg ok">Nạp thành công ${money(amount)} cho ${escapeHtml(u.name)}. Số dư mới: ${money(u.wallet)}.</div>`;
+  document.getElementById('topup-amount').value = '';
+}
+
+function renderStaffLookup(){
+  return `
+    <div class="page-head"><h2>Tra cứu đơn hàng</h2><div class="desc">Tìm theo mã đơn để đối chiếu khi phát món.</div></div>
+    <div class="panel">
+      <div class="field">
+        <label>Mã đơn hàng</label>
+        <input type="text" id="lookup-input" value="${escapeHtml(state.lookupCode)}" placeholder="vd. MV1001" oninput="state.lookupCode=this.value; renderLookupResult();">
+      </div>
+    </div>
+    <div style="margin-top:16px;max-width:480px;" id="lookup-result">${lookupResultHtml()}</div>
+  `;
+}
+function lookupResultHtml(){
+  const code = state.lookupCode.trim().toUpperCase();
+  if(!code) return '';
+  const found = state.orders.find(o => o.code.toUpperCase()===code);
+  if(!found) return '<div class="msg err">Không tìm thấy đơn hàng với mã này.</div>';
+  const student = state.users.find(u=>u.id===found.studentId);
+  return `
+    <div class="order-card">
+      <div class="order-card-top">
+        <div class="order-code-sm">${found.code}</div>
+        <span class="status-badge status-${found.status.replace(/ /g,'_')}">${found.status}</span>
+      </div>
+      <div style="font-size:13px;color:var(--ink-soft);margin:4px 0;">Sinh viên: ${student?escapeHtml(student.name):'—'} · Khung giờ ${found.slotLabel}</div>
+      <div class="order-items-list">${found.items.map(i=>`${escapeHtml(i.name)} x${i.qty}`).join(', ')}</div>
+      <div style="font-weight:700;margin-top:6px;">Tổng: ${money(found.total)}</div>
+    </div>`;
+}
+function renderLookupResult(){
+  document.getElementById('lookup-result').innerHTML = lookupResultHtml();
+}
+
+/* =========================================================
+   ADMIN VIEW
+   ========================================================= */
+function renderAdmin(){
+  const c = document.getElementById('content');
+  if(state.adminTab==='menu') c.innerHTML = renderAdminMenu();
+  if(state.adminTab==='users') c.innerHTML = renderAdminUsers();
+  if(state.adminTab==='wallet') c.innerHTML = renderAdminWallet();
+  if(state.adminTab==='reports') c.innerHTML = renderAdminReports();
+}
+
+function renderAdminMenu(){
+  const rows = state.menu.map(m => `
+    <tr>
+      <td>${m.icon} ${escapeHtml(m.name)}</td>
+      <td>${m.cat}</td>
+      <td>${money(m.price)}</td>
+      <td><button class="pill-toggle ${m.available?'in':'out'}" onclick="toggleAvailable('${m.id}')">${m.available?'Còn món':'Hết món'}</button></td>
+      <td class="row-actions">
+        <button onclick="openEditMenu('${m.id}')">Sửa</button>
+        <button class="danger" onclick="deleteMenu('${m.id}')">Xóa</button>
+      </td>
+    </tr>`).join('');
+  return `
+    <div class="page-head">
+      <div><h2>Quản lý thực đơn</h2><div class="desc">Thêm, sửa, xóa món và cập nhật tình trạng còn/hết hàng.</div></div>
+      <button class="btn btn-gold" onclick="openEditMenu(null)">+ Thêm món mới</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tên món</th><th>Danh mục</th><th>Giá</th><th>Tình trạng</th><th>Thao tác</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+function toggleAvailable(id){
+  const m = menuById(id);
+  m.available = !m.available;
+  renderAdmin();
+}
+function deleteMenu(id){
+  if(!confirm('Xóa món này khỏi thực đơn?')) return;
+  state.menu = state.menu.filter(m=>m.id!==id);
+  renderAdmin();
+}
+function openEditMenu(id){
+  state.editingMenuId = id;
+  const m = id ? menuById(id) : {name:'', cat:state.categories[0], price:'', icon:'🍽️', available:true};
+  openModal(`
+    <h3>${id?'Sửa món ăn':'Thêm món mới'}</h3>
+    <div class="field"><label>Tên món</label><input type="text" id="mf-name" value="${escapeHtml(m.name)}"></div>
+    <div class="form-row2">
+      <div class="field"><label>Danh mục</label>
+        <select id="mf-cat">${state.categories.map(c=>`<option ${c===m.cat?'selected':''}>${c}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>Giá (đ)</label><input type="number" id="mf-price" value="${m.price}"></div>
+    </div>
+    <div class="field"><label>Biểu tượng (emoji)</label><input type="text" id="mf-icon" value="${m.icon}" maxlength="2"></div>
+    <button class="btn btn-gold btn-block" onclick="saveMenu()">Lưu</button>
+  `);
+}
+function saveMenu(){
+  const name = document.getElementById('mf-name').value.trim();
+  const cat = document.getElementById('mf-cat').value;
+  const price = parseInt(document.getElementById('mf-price').value,10) || 0;
+  const icon = document.getElementById('mf-icon').value.trim() || '🍽️';
+  if(!name){ alert('Vui lòng nhập tên món.'); return; }
+  if(state.editingMenuId){
+    const m = menuById(state.editingMenuId);
+    Object.assign(m, {name,cat,price,icon});
+  } else {
+    state.menu.push({id:'m'+(state.menu.length+1)+'_'+Date.now(), name, cat, price, icon, available:true});
+  }
+  closeModal();
+  renderAdmin();
+}
+
+function renderAdminUsers(){
+  const rows = state.users.map(u => `
+    <tr>
+      <td>${escapeHtml(u.name)}</td>
+      <td>${u.loginId}</td>
+      <td>${u.role==='student'?'Sinh viên':u.role==='staff'?'Nhân viên căn tin':'Quản trị viên'}</td>
+      <td>${u.phone||'—'}</td>
+      <td>${u.role==='student'?money(u.wallet):'—'}</td>
+    </tr>`).join('');
+  return `
+    <div class="page-head"><h2>Quản lý người dùng</h2><div class="desc">Tra cứu tài khoản theo số điện thoại hoặc mã sinh viên.</div></div>
+    <div class="field" style="max-width:340px;"><input type="text" id="user-search" placeholder="Tìm theo tên, mã SV hoặc SĐT..." oninput="filterUsers(this.value)"></div>
+    <div class="table-wrap" style="margin-top:14px;">
+      <table>
+        <thead><tr><th>Họ tên</th><th>Mã đăng nhập</th><th>Vai trò</th><th>SĐT</th><th>Số dư ví</th></tr></thead>
+        <tbody id="user-rows">${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+function filterUsers(q){
+  q = q.toLowerCase();
+  const rows = state.users.filter(u =>
+    u.name.toLowerCase().includes(q) || u.loginId.toLowerCase().includes(q) || (u.phone||'').includes(q)
+  ).map(u => `
+    <tr>
+      <td>${escapeHtml(u.name)}</td>
+      <td>${u.loginId}</td>
+      <td>${u.role==='student'?'Sinh viên':u.role==='staff'?'Nhân viên căn tin':'Quản trị viên'}</td>
+      <td>${u.phone||'—'}</td>
+      <td>${u.role==='student'?money(u.wallet):'—'}</td>
+    </tr>`).join('');
+  document.getElementById('user-rows').innerHTML = rows;
+}
+
+function renderAdminWallet(){
+  return `
+    <div class="page-head"><h2>Cài đặt Ví Mâm Vàng</h2><div class="desc">Giới hạn số dư tối đa để hạn chế rủi ro nếu tài khoản bị dùng sai.</div></div>
+    <div class="panel">
+      <div class="field">
+        <label>Số dư tối đa cho phép (đ)</label>
+        <input type="number" id="wallet-max" value="${state.walletMax}" step="10000">
+      </div>
+      <div id="wallet-msg"></div>
+      <button class="btn btn-gold btn-block" onclick="saveWalletMax()">Lưu thay đổi</button>
+    </div>
+  `;
+}
+function saveWalletMax(){
+  const val = parseInt(document.getElementById('wallet-max').value,10);
+  if(!val || val<=0){ document.getElementById('wallet-msg').innerHTML='<div class="msg err">Giá trị không hợp lệ.</div>'; return; }
+  state.walletMax = val;
+  document.getElementById('wallet-msg').innerHTML = `<div class="msg ok">Đã cập nhật hạn mức tối đa: ${money(val)}.</div>`;
+}
+
+function renderAdminReports(){
+  const activeOrders = state.orders.filter(o=>o.status!=='Đã hủy');
+  const revenue = activeOrders.reduce((s,o)=>s+o.total,0);
+  const totalOrders = state.orders.length;
+  const cancelled = state.orders.filter(o=>o.status==='Đã hủy').length;
+
+  const maxCount = Math.max(1, ...state.timeslots.map(t=>t.booked));
+  const bars = state.timeslots.map(t => {
+    const h = Math.round((t.booked/maxCount)*130) + 10;
+    return `
+      <div class="bar-col">
+        <div class="bar-fill" style="height:${h}px;"><span>${t.booked}</span></div>
+        <div class="bar-label">${t.label}</div>
+      </div>`;
+  }).join('');
+
+  const sold = {};
+  activeOrders.forEach(o => o.items.forEach(i => { sold[i.name] = (sold[i.name]||0) + i.qty; }));
+  const topItems = Object.entries(sold).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const topHtml = topItems.length ? topItems.map(([name,qty]) =>
+    `<div class="top-item-row"><span>${escapeHtml(name)}</span><span><b>${qty}</b> phần</span></div>`
+  ).join('') : '<div style="color:var(--ink-soft);font-size:13px;">Chưa có dữ liệu bán hàng.</div>';
+
+  return `
+    <div class="page-head"><h2>Báo cáo & thống kê</h2><div class="desc">Số liệu cơ bản trong ngày để điều chỉnh vận hành.</div></div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="label">Doanh thu (đơn hợp lệ)</div><div class="value">${money(revenue)}</div></div>
+      <div class="stat-box"><div class="label">Tổng số đơn</div><div class="value">${totalOrders}</div></div>
+      <div class="stat-box"><div class="label">Đơn đã hủy</div><div class="value">${cancelled}</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card-box">
+        <h3>Số đơn theo khung giờ</h3>
+        <div class="bar-chart">${bars}</div>
+      </div>
+      <div class="card-box">
+        <h3>Món bán chạy</h3>
+        ${topHtml}
+      </div>
+    </div>
+  `;
+}
+
+/* ---------- MODAL ---------- */
+function openModal(html){
+  document.getElementById('modal-box').innerHTML = html + `<button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="closeModal()">Đóng</button>`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('show'); }
+document.getElementById('modal-overlay').addEventListener('click', function(e){
+  if(e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
