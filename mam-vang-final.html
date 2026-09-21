@@ -503,7 +503,7 @@ function isLate(order){
   return (Date.now() - order.createdAt) > 8*60000;
 }
 function escapeHtml(s){ const d=document.createElement('div'); d.innerText=s; return d.innerHTML; }
-
+ 
 /* ---------- AUTH ---------- */
 function switchAuthTab(which){
   document.getElementById('tab-login-btn').classList.toggle('active', which==='login');
