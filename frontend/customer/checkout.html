@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh Toán Đơn Hàng - Mâm Vàng</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <header class="customer-nav">
+    <div class="container nav-container">
+      <a href="/canteen-management/frontend/customer/home.html" class="flex items-center gap-2" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">
+        <span style="font-size: 1.7rem;">🍜</span> Mâm Vàng
+      </a>
+      <div class="flex items-center gap-3">
+        <a href="/canteen-management/frontend/customer/cart.html" class="btn btn-secondary btn-sm">← Quay Lại Giỏ Hàng</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;">Xác Nhận & Thanh Toán Đơn Hàng</h1>
+
+    <div class="grid grid-cols-3 gap-6">
+      <!-- Checkout Form Column (2 cols) -->
+      <div style="grid-column: span 2;">
+        <form id="checkout-form">
+          <!-- Location / Table selection -->
+          <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem;">1. Thông Tin Nhận Món</h3>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="form-label" for="table-number">Số Bàn Ăn Hoặc Địa Điểm Nhận</label>
+                <input type="text" id="table-number" class="form-control" placeholder="VD: Bàn 08, Phòng 302 KTX, Mang đi..." required value="Mang đi">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="notes">Ghi Chú Chung Cho Đơn Hàng</label>
+                <input type="text" id="notes" class="form-control" placeholder="VD: Lấy thêm đũa muỗng, ăn tại chỗ...">
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Method Selection -->
+          <div class="card" style="padding: 1.5rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem;">2. Phương Thức Thanh Toán</h3>
+
+            <div class="flex" style="flex-direction: column; gap: 0.85rem;">
+              <!-- Wallet Option -->
+              <label style="border: 2px solid var(--border); border-radius: var(--radius-md); padding: 1.1rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: border-color 0.2s;" id="label-pay-wallet">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="payment_method" value="WALLET" checked onchange="handlePaymentChange()">
+                  <div>
+                    <strong>💳 Ví Điện Tử Căn Tin</strong>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">
+                      Số dư khả dụng: <span id="wallet-balance-val" style="color: var(--primary); font-weight: 700;">0đ</span>
+                    </div>
+                  </div>
+                </div>
+                <a href="/canteen-management/frontend/customer/wallet.html" target="_blank" style="font-size: 0.8rem; color: var(--secondary); font-weight: 600;">+ Nạp thêm tiền</a>
+              </label>
+
+              <!-- Cash Option -->
+              <label style="border: 2px solid var(--border); border-radius: var(--radius-md); padding: 1.1rem; display: flex; align-items: center; cursor: pointer;" id="label-pay-cash">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="payment_method" value="CASH" onchange="handlePaymentChange()">
+                  <div>
+                    <strong>💵 Tiền Mặt Tại Quầy</strong>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Thanh toán trực tiếp cho thu ngân khi nhận món ăn</div>
+                  </div>
+                </div>
+              </label>
+
+              <!-- Bank Transfer VietQR Option -->
+              <label style="border: 2px solid var(--border); border-radius: var(--radius-md); padding: 1.1rem; display: flex; align-items: center; cursor: pointer;" id="label-pay-bank">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="payment_method" value="BANK_TRANSFER" onchange="handlePaymentChange()">
+                  <div>
+                    <strong>🏦 Chuyển Khoản VietQR / Mobile Banking</strong>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Quét mã QR thanh toán nhanh chóng và tự động</div>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Order Review Column (1 col) -->
+      <div>
+        <div class="card" style="padding: 1.5rem; position: sticky; top: 90px;">
+          <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 1rem;">Đơn Hàng Của Bạn</h3>
+
+          <div id="checkout-items-preview" style="max-height: 220px; overflow-y: auto; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+            <!-- Loaded by JS -->
+          </div>
+
+          <div class="flex justify-between items-center" style="margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
+            <span>Tạm tính:</span>
+            <strong id="preview-subtotal" style="color: var(--text-main);">0đ</strong>
+          </div>
+
+          <div class="flex justify-between items-center" style="margin-bottom: 0.5rem; color: var(--success); font-size: 0.9rem;">
+            <span>Giảm voucher:</span>
+            <strong id="preview-discount">-0đ</strong>
+          </div>
+
+          <div class="flex justify-between items-center" style="font-size: 1.3rem; font-weight: 900; margin-top: 1rem; padding-top: 0.75rem; border-top: 2px dashed var(--border);">
+            <span>Tổng cộng:</span>
+            <span id="preview-final" style="color: var(--primary);">0đ</span>
+          </div>
+
+          <button type="button" id="btn-place-order" class="btn btn-primary btn-block btn-lg" style="margin-top: 1.5rem;" onclick="submitOrder()">
+            Hoàn Tất Đặt Món
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let userWalletBalance = 0;
+    let finalAmount = 0;
+    let appliedVoucher = '';
+
+    async function initCheckout() {
+      AuthGuard.checkAccess(['CUSTOMER', 'ADMIN', 'EMPLOYEE']);
+
+      const items = Cart.get();
+      if (items.length === 0) {
+        window.location.href = '/canteen-management/frontend/customer/cart.html';
+        return;
+      }
+
+      // Render items preview
+      const previewList = document.getElementById('checkout-items-preview');
+      previewList.innerHTML = '';
+      items.forEach(i => {
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center';
+        row.style.fontSize = '0.875rem';
+        row.style.marginBottom = '0.4rem';
+        const sub = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(i.price * i.quantity);
+        row.innerHTML = `<span>${i.name} <strong>x${i.quantity}</strong></span> <span>${sub}</span>`;
+        previewList.appendChild(row);
+      });
+
+      const subtotal = Cart.subtotal();
+      const discount = parseFloat(sessionStorage.getItem('canteen_discount') || '0');
+      appliedVoucher = sessionStorage.getItem('canteen_voucher') || '';
+      finalAmount = Math.max(0, subtotal - discount);
+
+      document.getElementById('preview-subtotal').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(subtotal);
+      document.getElementById('preview-discount').textContent = '-' + new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(discount);
+      document.getElementById('preview-final').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(finalAmount);
+
+      // Fetch fresh user profile & wallet
+      try {
+        const meRes = await API.get('/auth/me.php');
+        if (meRes.success && meRes.data) {
+          userWalletBalance = meRes.data.wallet_balance || 0;
+          document.getElementById('wallet-balance-val').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(userWalletBalance);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function handlePaymentChange() {
+      // Styling highlight if needed
+    }
+
+    async function submitOrder() {
+      const items = Cart.get();
+      if (items.length === 0) return;
+
+      const btn = document.getElementById('btn-place-order');
+      btn.disabled = true;
+      btn.textContent = 'Đang xử lý đặt món...';
+
+      const tableNumber = document.getElementById('table-number').value.trim();
+      const notes = document.getElementById('notes').value.trim();
+      const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'CASH';
+
+      // Check wallet balance
+      if (paymentMethod === 'WALLET' && userWalletBalance < finalAmount) {
+        showToast('Số dư ví không đủ! Vui lòng chọn Tiền mặt hoặc nạp thêm tiền.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Hoàn Tất Đặt Món';
+        return;
+      }
+
+      const payload = {
+        items: items.map(i => ({
+          product_id: i.product_id,
+          quantity: i.quantity,
+          notes: i.notes || ''
+        })),
+        table_number: tableNumber,
+        notes: notes,
+        payment_method: paymentMethod,
+        voucher_code: appliedVoucher,
+        total_amount: Cart.subtotal(),
+        final_amount: finalAmount
+      };
+
+      try {
+        const res = await API.post('/orders/create.php', payload);
+        if (res.success) {
+          Cart.clear();
+          sessionStorage.removeItem('canteen_voucher');
+          sessionStorage.removeItem('canteen_discount');
+          showToast('Đặt món thành công!', 'success');
+
+          setTimeout(() => {
+            window.location.href = `/frontend/customer/order-detail.html?id=${res.data.order_id || res.data.id || ''}`;
+          }, 600);
+        } else {
+          showToast(res.message || 'Đặt món không thành công', 'error');
+        }
+      } catch (err) {
+        showToast(err.message || 'Lỗi xử lý đơn hàng', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Hoàn Tất Đặt Món';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initCheckout);
+  </script>
+</body>
+</html>

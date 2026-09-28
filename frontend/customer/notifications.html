@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thông Báo - Mâm Vàng</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <header class="customer-nav">
+    <div class="container nav-container">
+      <a href="/canteen-management/frontend/customer/home.html" class="flex items-center gap-2" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">
+        <span style="font-size: 1.7rem;">🍜</span> Mâm Vàng
+      </a>
+      <a href="/canteen-management/frontend/customer/home.html" class="btn btn-secondary btn-sm">🍽️ Trang Chủ</a>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 2rem; padding-bottom: 4rem; max-width: 800px;">
+    <div class="flex justify-between items-center" style="margin-bottom: 1.5rem;">
+      <h1 style="font-size: 1.75rem; font-weight: 800;">Thông Báo Của Bạn</h1>
+      <button class="btn btn-secondary btn-sm" onclick="markAllRead()">Đánh dấu đã đọc tất cả</button>
+    </div>
+
+    <div id="notifications-list" class="flex" style="flex-direction: column; gap: 0.75rem;">
+      <!-- Loaded dynamically -->
+    </div>
+  </main>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    async function loadNotifications() {
+      AuthGuard.checkAccess(['CUSTOMER', 'ADMIN', 'EMPLOYEE']);
+
+      try {
+        const res = await API.get('/notifications/list.php');
+        if (res.success && res.data) {
+          renderNotifications(res.data.items || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderNotifications(items) {
+      const container = document.getElementById('notifications-list');
+      container.innerHTML = '';
+
+      if (items.length === 0) {
+        container.innerHTML = '<div class="card" style="text-align: center; padding: 3rem; color: var(--text-muted);">Bạn chưa có thông báo nào.</div>';
+        return;
+      }
+
+      items.forEach(n => {
+        const card = document.createElement('div');
+        card.className = 'card flex items-center justify-between gap-3';
+        card.style.padding = '1.1rem 1.4rem';
+        card.style.borderLeft = n.is_read ? '1px solid var(--border)' : '5px solid var(--primary)';
+        card.style.opacity = n.is_read ? '0.75' : '1';
+
+        const iconMap = { 'ORDER': '📦', 'PROMO': '🎁', 'WALLET': '💳', 'SYSTEM': '🔔' };
+        const icon = iconMap[n.type] || '🔔';
+
+        card.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span style="font-size: 1.5rem;">${icon}</span>
+            <div>
+              <strong style="display: block; font-size: 0.95rem; margin-bottom: 0.2rem;">${n.title}</strong>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">${n.message}</p>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">${new Date(n.created_at).toLocaleString('vi-VN')}</span>
+            </div>
+          </div>
+          ${n.link ? `<a href="${n.link}" class="btn btn-sm btn-secondary" onclick="markRead(${n.id})">Xem →</a>` : ''}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function markRead(id) {
+      try {
+        await API.post('/notifications/mark_read.php', { id });
+      } catch (e) {}
+    }
+
+    async function markAllRead() {
+      try {
+        const res = await API.post('/notifications/mark_read.php', {});
+        if (res.success) {
+          showToast('Đã đánh dấu đã đọc tất cả!', 'success');
+          loadNotifications();
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadNotifications);
+  </script>
+</body>
+</html>

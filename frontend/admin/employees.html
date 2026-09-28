@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhân Viên - Canteen Admin</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👑</span>
+        <span>Canteen Admin</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/admin/dashboard.html" class="sidebar-link">📊 Dashboard</a></li>
+        <li><a href="/canteen-management/frontend/admin/orders.html" class="sidebar-link">📋 Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/products.html" class="sidebar-link">🍲 Món Ăn</a></li>
+        <li><a href="/canteen-management/frontend/admin/categories.html" class="sidebar-link">🏷️ Danh Mục</a></li>
+        <li><a href="/canteen-management/frontend/admin/inventory.html" class="sidebar-link">📦 Kho Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/suppliers.html" class="sidebar-link">🚚 Nhà Cung Cấp</a></li>
+        <li><a href="/canteen-management/frontend/admin/customers.html" class="sidebar-link">👥 Sinh Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/employees.html" class="sidebar-link active">👨‍🍳 Nhân Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/attendance.html" class="sidebar-link">⏱️ Chấm Công</a></li>
+        <li><a href="/canteen-management/frontend/admin/shifts.html" class="sidebar-link">📅 Ca Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/admin/vouchers.html" class="sidebar-link">🎁 Mã Voucher</a></li>
+        <li><a href="/canteen-management/frontend/admin/reviews.html" class="sidebar-link">⭐ Đánh Giá</a></li>
+        <li><a href="/canteen-management/frontend/admin/users.html" class="sidebar-link">🔐 Người Dùng</a></li>
+        <li><a href="/canteen-management/frontend/admin/reports.html" class="sidebar-link">📈 Báo Cáo Doanh Thu</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Quản Lý Đội Ngũ Nhân Viên Căn Tin</h2>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openAddEmpModal()">+ Thêm Nhân Viên Mới</button>
+      </header>
+
+      <div class="content-body">
+        <div class="card" style="padding: 1rem;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nhân Viên</th>
+                  <th>Bộ Phận</th>
+                  <th>Vị Trí</th>
+                  <th>Số Điện Thoại</th>
+                  <th>Mức Lương (VND)</th>
+                  <th>Ngày Nhận Việc</th>
+                  <th>Số Ca Đã Làm</th>
+                  <th>Trạng Thái</th>
+                  <th style="text-align: right;">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="employees-tbody">
+                <tr><td colspan="9" style="text-align: center; padding: 2rem;">Đang tải danh sách nhân viên...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Employee Modal -->
+  <div id="emp-modal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="emp-modal-title" style="font-size: 1.25rem; font-weight: 800;">Thêm Nhân Viên</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeEmpModal()">✕</button>
+      </div>
+      <form id="emp-form">
+        <input type="hidden" id="emp-id">
+
+        <div class="form-group">
+          <label class="form-label">Họ và Tên</label>
+          <input type="text" id="emp-name" class="form-control" required placeholder="Trần Nhân Viên">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Công Việc</label>
+          <input type="email" id="emp-email" class="form-control" required placeholder="nhanvien@canteen.com">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label">Bộ Phận</label>
+            <select id="emp-dept" class="form-control">
+              <option value="Bếp Căn Tin">Bếp Căn Tin</option>
+              <option value="Phục Vụ & Pha Chế">Phục Vụ & Pha Chế</option>
+              <option value="Thu Ngân & Quầy POS">Thu Ngân & Quầy POS</option>
+              <option value="Kho & Hậu Cần">Kho & Hậu Cần</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Vị Trí / Chức Vụ</label>
+            <input type="text" id="emp-pos" class="form-control" placeholder="Nhân viên pha chế">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label">Số Điện Thoại</label>
+            <input type="tel" id="emp-phone" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mức Lương Cơ Bản (VND)</label>
+            <input type="number" id="emp-salary" class="form-control" min="0" step="500000" placeholder="7500000">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Lưu Nhân Viên</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let employeesList = [];
+
+    async function loadEmployees() {
+      AuthGuard.checkAccess(['ADMIN']);
+
+      try {
+        const res = await API.get('/employees/list.php');
+        if (res.success && res.data) {
+          employeesList = res.data;
+          renderEmployees(employeesList);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderEmployees(items) {
+      const tbody = document.getElementById('employees-tbody');
+      tbody.innerHTML = '';
+
+      items.forEach(e => {
+        const tr = document.createElement('tr');
+        const salary = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(e.salary || 0);
+
+        tr.innerHTML = `
+          <td>
+            <div class="flex items-center gap-3">
+              <img src="${e.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80'}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;">
+              <div>
+                <strong>${e.name}</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">${e.email}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge-preparing">${e.department}</span></td>
+          <td><strong>${e.position}</strong></td>
+          <td>${e.phone || '—'}</td>
+          <td style="font-weight: 700; color: var(--primary);">${salary}</td>
+          <td>${e.hire_date || '—'}</td>
+          <td><span class="badge badge-ready">${e.total_shifts_worked || 0} ca</span></td>
+          <td><span class="badge ${e.employee_status === 'ACTIVE' ? 'badge-completed' : 'badge-cancelled'}">${e.employee_status}</span></td>
+          <td style="text-align: right;">
+            <button class="btn btn-sm btn-danger" onclick="resignEmployee(${e.employee_id})">Nghỉ Việc</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAddEmpModal() {
+      document.getElementById('emp-modal-title').textContent = 'Thêm Nhân Viên Mới';
+      document.getElementById('emp-id').value = '';
+      document.getElementById('emp-name').value = '';
+      document.getElementById('emp-email').value = '';
+      document.getElementById('emp-dept').value = 'Phục Vụ & Pha Chế';
+      document.getElementById('emp-pos').value = 'Nhân viên';
+      document.getElementById('emp-phone').value = '';
+      document.getElementById('emp-salary').value = '7500000';
+      document.getElementById('emp-modal').classList.add('active');
+    }
+
+    function closeEmpModal() {
+      document.getElementById('emp-modal').classList.remove('active');
+    }
+
+    document.getElementById('emp-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('emp-name').value.trim(),
+        email: document.getElementById('emp-email').value.trim(),
+        department: document.getElementById('emp-dept').value,
+        position: document.getElementById('emp-pos').value.trim(),
+        phone: document.getElementById('emp-phone').value.trim(),
+        salary: parseFloat(document.getElementById('emp-salary').value || '0')
+      };
+
+      try {
+        const res = await API.post('/employees/create.php', payload);
+        if (res.success) {
+          showToast(res.message || 'Thêm nhân viên thành công!', 'success');
+          closeEmpModal();
+          loadEmployees();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    async function resignEmployee(id) {
+      if (!confirm('Bạn có chắc muốn chuyển nhân viên này sang trạng thái Đã nghỉ việc?')) return;
+      try {
+        const res = await API.post('/employees/delete.php', { employee_id: id });
+        showToast(res.message, res.success ? 'success' : 'error');
+        loadEmployees();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadEmployees);
+  </script>
+</body>
+</html>

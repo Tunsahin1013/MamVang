@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng Điều Khiển Quản Trị - Mâm Vàng Admin</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-layout">
+    <!-- Admin Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👑</span>
+        <span>Canteen Admin</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/admin/dashboard.html" class="sidebar-link active">📊 Dashboard</a></li>
+        <li><a href="/canteen-management/frontend/admin/orders.html" class="sidebar-link">📋 Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/products.html" class="sidebar-link">🍲 Món Ăn</a></li>
+        <li><a href="/canteen-management/frontend/admin/categories.html" class="sidebar-link">🏷️ Danh Mục</a></li>
+        <li><a href="/canteen-management/frontend/admin/inventory.html" class="sidebar-link">📦 Kho Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/suppliers.html" class="sidebar-link">🚚 Nhà Cung Cấp</a></li>
+        <li><a href="/canteen-management/frontend/admin/customers.html" class="sidebar-link">👥 Sinh Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/employees.html" class="sidebar-link">👨‍🍳 Nhân Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/attendance.html" class="sidebar-link">⏱️ Chấm Công</a></li>
+        <li><a href="/canteen-management/frontend/admin/shifts.html" class="sidebar-link">📅 Ca Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/admin/vouchers.html" class="sidebar-link">🎁 Mã Voucher</a></li>
+        <li><a href="/canteen-management/frontend/admin/reviews.html" class="sidebar-link">⭐ Đánh Giá</a></li>
+        <li><a href="/canteen-management/frontend/admin/users.html" class="sidebar-link">🔐 Người Dùng</a></li>
+        <li><a href="/canteen-management/frontend/admin/reports.html" class="sidebar-link">📈 Báo Cáo Doanh Thu</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">Quản trị hệ thống</span>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Tổng Quan Hoạt Động Căn Tin</h2>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button class="btn btn-secondary btn-sm theme-toggle-btn" onclick="ThemeManager.toggle()">🌙</button>
+          
+          <div class="flex items-center gap-2">
+            <img class="auth-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+            <div>
+              <strong class="auth-user-name" style="font-size: 0.9rem; display: block;">Quản Trị Viên</strong>
+              <span class="badge badge-confirmed" style="font-size: 0.7rem;">ADMINISTRATOR</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <!-- KPI Cards Grid -->
+        <div class="grid grid-cols-4 gap-4" style="margin-bottom: 2rem;">
+          <div class="card" style="padding: 1.25rem;">
+            <span style="font-size: 0.825rem; color: var(--text-muted); font-weight: 700;">TỔNG DOANH THU</span>
+            <div id="stat-revenue" style="font-size: 1.75rem; font-weight: 900; color: var(--primary); margin: 0.35rem 0;">0đ</div>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Hôm nay: <strong id="stat-today-revenue" style="color: var(--success);">0đ</strong></span>
+          </div>
+
+          <div class="card" style="padding: 1.25rem;">
+            <span style="font-size: 0.825rem; color: var(--text-muted); font-weight: 700;">TỔNG ĐƠN HÀNG</span>
+            <div id="stat-orders" style="font-size: 1.75rem; font-weight: 900; color: #0284c7; margin: 0.35rem 0;">0</div>
+            <span style="font-size: 0.8rem; color: var(--warning);">Đang chờ xử lý: <strong id="stat-pending">0</strong></span>
+          </div>
+
+          <div class="card" style="padding: 1.25rem;">
+            <span style="font-size: 0.825rem; color: var(--text-muted); font-weight: 700;">SẢN PHẨM & TỒN KHO</span>
+            <div id="stat-products" style="font-size: 1.75rem; font-weight: 900; color: #10b981; margin: 0.35rem 0;">0</div>
+            <span style="font-size: 0.8rem; color: var(--danger);">Sắp hết hàng: <strong id="stat-low-stock">0</strong></span>
+          </div>
+
+          <div class="card" style="padding: 1.25rem;">
+            <span style="font-size: 0.825rem; color: var(--text-muted); font-weight: 700;">NGƯỜI DÙNG</span>
+            <div id="stat-users" style="font-size: 1.75rem; font-weight: 900; color: #8b5cf6; margin: 0.35rem 0;">0</div>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Khách: <strong id="stat-customers">0</strong> • NV: <strong id="stat-employees">0</strong></span>
+          </div>
+        </div>
+
+        <!-- Charts Grid (2 cols) -->
+        <div class="grid grid-cols-3 gap-6" style="margin-bottom: 2rem;">
+          <!-- Revenue Line Chart (2 cols) -->
+          <div class="card" style="grid-column: span 2; padding: 1.5rem;">
+            <div class="flex justify-between items-center" style="margin-bottom: 1.25rem;">
+              <h3 style="font-size: 1.15rem; font-weight: 800;">Doanh Thu Đơn Hàng Theo Ngày (VND)</h3>
+              <span class="badge badge-ready">7 Ngày Gần Nhất</span>
+            </div>
+            <div style="height: 280px; position: relative;">
+              <canvas id="revenueChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Orders by Status Donut Chart (1 col) -->
+          <div class="card" style="padding: 1.5rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1.25rem;">Đơn Hàng Theo Trạng Thái</h3>
+            <div style="height: 280px; position: relative; display: flex; align-items: center; justify-content: center;">
+              <canvas id="statusChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Grid: Recent Orders & Best Sellers -->
+        <div class="grid grid-cols-3 gap-6">
+          <!-- Recent Orders (2 cols) -->
+          <div class="card" style="grid-column: span 2; padding: 1.5rem;">
+            <div class="flex justify-between items-center" style="margin-bottom: 1rem;">
+              <h3 style="font-size: 1.15rem; font-weight: 800;">Đơn Hàng Mới Nhất</h3>
+              <a href="/canteen-management/frontend/admin/orders.html" style="font-size: 0.85rem; color: var(--primary); font-weight: 700;">Xem tất cả →</a>
+            </div>
+
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Mã Đơn</th>
+                    <th>Sinh Viên</th>
+                    <th>Bàn</th>
+                    <th>Tổng Tiền</th>
+                    <th>Trạng Thái</th>
+                    <th>Thời Gian</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-orders-tbody">
+                  <!-- Injected by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Top Best Sellers (1 col) -->
+          <div class="card" style="padding: 1.5rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem;">Món Bán Chạy Nhất</h3>
+            <div id="top-products-list" class="flex" style="flex-direction: column; gap: 0.75rem;">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let revChartInstance = null;
+    let statusChartInstance = null;
+
+    async function loadDashboard() {
+      AuthGuard.checkAccess(['ADMIN']);
+
+      try {
+        const res = await API.get('/dashboard/admin_stats.php');
+        if (res.success && res.data) {
+          const d = res.data;
+          const kpis = d.kpis || {};
+
+          document.getElementById('stat-revenue').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(kpis.total_revenue || 0);
+          document.getElementById('stat-today-revenue').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(kpis.today_revenue || 0);
+          document.getElementById('stat-orders').textContent = kpis.total_orders || 0;
+          document.getElementById('stat-pending').textContent = kpis.pending_orders || 0;
+          document.getElementById('stat-products').textContent = kpis.total_products || 0;
+          document.getElementById('stat-low-stock').textContent = kpis.low_stock_count || 0;
+          document.getElementById('stat-users').textContent = (kpis.total_customers || 0) + (kpis.total_employees || 0) + 1;
+          document.getElementById('stat-customers').textContent = kpis.total_customers || 0;
+          document.getElementById('stat-employees').textContent = kpis.total_employees || 0;
+
+          renderRevenueChart(d.revenue_chart || []);
+          renderStatusChart(d.orders_by_status || []);
+          renderRecentOrders(d.recent_orders || []);
+          renderTopProducts(d.top_products || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderRevenueChart(chartData) {
+      const ctx = document.getElementById('revenueChart').getContext('2d');
+      if (revChartInstance) revChartInstance.destroy();
+
+      const labels = chartData.map(c => c.date_label || '');
+      const data = chartData.map(c => c.revenue || 0);
+
+      revChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels.length > 0 ? labels : ['Hôm qua', 'Hôm nay'],
+          datasets: [{
+            label: 'Doanh thu (VND)',
+            data: data.length > 0 ? data : [1200000, 1850000],
+            backgroundColor: 'rgba(249, 115, 22, 0.85)',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function renderStatusChart(statusData) {
+      const ctx = document.getElementById('statusChart').getContext('2d');
+      if (statusChartInstance) statusChartInstance.destroy();
+
+      const labels = statusData.map(s => s.order_status);
+      const counts = statusData.map(s => s.count);
+
+      statusChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels.length > 0 ? labels : ['COMPLETED', 'PENDING', 'PREPARING'],
+          datasets: [{
+            data: counts.length > 0 ? counts : [80, 10, 15],
+            backgroundColor: ['#10b981', '#f59e0b', '#8b5cf6', '#0284c7', '#ef4444']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+
+    function renderRecentOrders(orders) {
+      const tbody = document.getElementById('recent-orders-tbody');
+      tbody.innerHTML = '';
+
+      orders.forEach(o => {
+        const tr = document.createElement('tr');
+        const amt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(o.final_amount);
+        tr.innerHTML = `
+          <td><strong>${o.order_number}</strong></td>
+          <td>${o.customer_name || 'Khách'}</td>
+          <td>${o.table_number || 'Mang đi'}</td>
+          <td style="font-weight: 700; color: var(--primary);">${amt}</td>
+          <td><span class="badge badge-completed">${o.order_status}</span></td>
+          <td style="font-size: 0.8rem; color: var(--text-muted);">${new Date(o.created_at).toLocaleTimeString('vi-VN')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderTopProducts(products) {
+      const list = document.getElementById('top-products-list');
+      list.innerHTML = '';
+
+      products.forEach((p, idx) => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-3';
+        row.style.padding = '0.6rem 0';
+        row.style.borderBottom = '1px solid var(--border)';
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span style="font-weight: 800; color: var(--primary); width: 18px;">#${idx + 1}</span>
+            <img src="${p.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=150&q=80'}" style="width: 38px; height: 38px; border-radius: var(--radius-sm); object-fit: cover;">
+            <strong style="font-size: 0.9rem;">${p.name}</strong>
+          </div>
+          <span class="badge badge-ready" style="font-size: 0.75rem;">${p.total_sold || 0} đã bán</span>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDashboard);
+  </script>
+</body>
+</html>

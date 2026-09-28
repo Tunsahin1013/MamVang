@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhà Cung Cấp - Canteen Admin</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👑</span>
+        <span>Canteen Admin</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/admin/dashboard.html" class="sidebar-link">📊 Dashboard</a></li>
+        <li><a href="/canteen-management/frontend/admin/orders.html" class="sidebar-link">📋 Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/products.html" class="sidebar-link">🍲 Món Ăn</a></li>
+        <li><a href="/canteen-management/frontend/admin/categories.html" class="sidebar-link">🏷️ Danh Mục</a></li>
+        <li><a href="/canteen-management/frontend/admin/inventory.html" class="sidebar-link">📦 Kho Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/suppliers.html" class="sidebar-link active">🚚 Nhà Cung Cấp</a></li>
+        <li><a href="/canteen-management/frontend/admin/customers.html" class="sidebar-link">👥 Sinh Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/employees.html" class="sidebar-link">👨‍🍳 Nhân Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/attendance.html" class="sidebar-link">⏱️ Chấm Công</a></li>
+        <li><a href="/canteen-management/frontend/admin/shifts.html" class="sidebar-link">📅 Ca Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/admin/vouchers.html" class="sidebar-link">🎁 Mã Voucher</a></li>
+        <li><a href="/canteen-management/frontend/admin/reviews.html" class="sidebar-link">⭐ Đánh Giá</a></li>
+        <li><a href="/canteen-management/frontend/admin/users.html" class="sidebar-link">🔐 Người Dùng</a></li>
+        <li><a href="/canteen-management/frontend/admin/reports.html" class="sidebar-link">📈 Báo Cáo Doanh Thu</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Quản Lý Nhà Cung Cấp Thực Phẩm</h2>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Thêm Nhà Cung Cấp</button>
+      </header>
+
+      <div class="content-body">
+        <div class="card" style="padding: 1rem;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tên Công Ty / Đơn Vị</th>
+                  <th>Người Liên Hệ</th>
+                  <th>Số Điện Thoại</th>
+                  <th>Email</th>
+                  <th>Địa Chỉ</th>
+                  <th>Trạng Thái</th>
+                  <th style="text-align: right;">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="suppliers-tbody">
+                <tr><td colspan="7" style="text-align: center; padding: 2rem;">Đang tải danh sách nhà cung cấp...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supplier Modal -->
+  <div id="supplier-modal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title" style="font-size: 1.25rem; font-weight: 800;">Thêm Nhà Cung Cấp</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
+      </div>
+      <form id="supplier-form">
+        <input type="hidden" id="sup-id">
+        <div class="form-group">
+          <label class="form-label">Tên Nhà Cung Cấp</label>
+          <input type="text" id="sup-name" class="form-control" required placeholder="VD: Nông sản sạch Đà Lạt">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label">Người Đại Diện / Liên Hệ</label>
+            <input type="text" id="sup-contact" class="form-control" placeholder="Nguyễn Văn B">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số Điện Thoại</label>
+            <input type="tel" id="sup-phone" class="form-control" placeholder="0901234567">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="sup-email" class="form-control" placeholder="contact@supplier.vn">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Địa Chỉ Kho / Trụ Sở</label>
+          <input type="text" id="sup-address" class="form-control" placeholder="45 Trần Phú, Đà Lạt">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Lưu Nhà Cung Cấp</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let suppliersList = [];
+
+    async function loadSuppliers() {
+      AuthGuard.checkAccess(['ADMIN']);
+
+      try {
+        const res = await API.get('/suppliers/list.php');
+        if (res.success && res.data) {
+          suppliersList = res.data;
+          renderSuppliers(suppliersList);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderSuppliers(items) {
+      const tbody = document.getElementById('suppliers-tbody');
+      tbody.innerHTML = '';
+
+      items.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${s.name}</strong></td>
+          <td>${s.contact_person || '—'}</td>
+          <td>${s.phone || '—'}</td>
+          <td>${s.email || '—'}</td>
+          <td>${s.address || '—'}</td>
+          <td><span class="badge ${s.status === 'ACTIVE' ? 'badge-completed' : 'badge-cancelled'}">${s.status}</span></td>
+          <td style="text-align: right;">
+            <div class="flex justify-end gap-2">
+              <button class="btn btn-sm btn-secondary" onclick="openEditModal(${s.id})">Sửa</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteSupplier(${s.id})">Xóa</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAddModal() {
+      document.getElementById('modal-title').textContent = 'Thêm Nhà Cung Cấp Mới';
+      document.getElementById('sup-id').value = '';
+      document.getElementById('sup-name').value = '';
+      document.getElementById('sup-contact').value = '';
+      document.getElementById('sup-phone').value = '';
+      document.getElementById('sup-email').value = '';
+      document.getElementById('sup-address').value = '';
+      document.getElementById('supplier-modal').classList.add('active');
+    }
+
+    function openEditModal(id) {
+      const s = suppliersList.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('modal-title').textContent = 'Cập Nhật Nhà Cung Cấp';
+      document.getElementById('sup-id').value = s.id;
+      document.getElementById('sup-name').value = s.name;
+      document.getElementById('sup-contact').value = s.contact_person || '';
+      document.getElementById('sup-phone').value = s.phone || '';
+      document.getElementById('sup-email').value = s.email || '';
+      document.getElementById('sup-address').value = s.address || '';
+      document.getElementById('supplier-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('supplier-modal').classList.remove('active');
+    }
+
+    document.getElementById('supplier-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('sup-id').value;
+      const payload = {
+        id: id ? parseInt(id) : undefined,
+        name: document.getElementById('sup-name').value.trim(),
+        contact_person: document.getElementById('sup-contact').value.trim(),
+        phone: document.getElementById('sup-phone').value.trim(),
+        email: document.getElementById('sup-email').value.trim(),
+        address: document.getElementById('sup-address').value.trim()
+      };
+
+      try {
+        const endpoint = id ? '/suppliers/update.php' : '/suppliers/create.php';
+        const res = await API.post(endpoint, payload);
+        if (res.success) {
+          showToast(res.message || 'Lưu nhà cung cấp thành công!', 'success');
+          closeModal();
+          loadSuppliers();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    async function deleteSupplier(id) {
+      if (!confirm('Bạn có chắc muốn xóa nhà cung cấp này?')) return;
+      try {
+        const res = await API.post('/suppliers/delete.php', { id });
+        showToast(res.message, res.success ? 'success' : 'error');
+        loadSuppliers();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadSuppliers);
+  </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Người Dùng - Canteen Admin</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👑</span>
+        <span>Canteen Admin</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/admin/dashboard.html" class="sidebar-link">📊 Dashboard</a></li>
+        <li><a href="/canteen-management/frontend/admin/orders.html" class="sidebar-link">📋 Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/products.html" class="sidebar-link">🍲 Món Ăn</a></li>
+        <li><a href="/canteen-management/frontend/admin/categories.html" class="sidebar-link">🏷️ Danh Mục</a></li>
+        <li><a href="/canteen-management/frontend/admin/inventory.html" class="sidebar-link">📦 Kho Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/suppliers.html" class="sidebar-link">🚚 Nhà Cung Cấp</a></li>
+        <li><a href="/canteen-management/frontend/admin/customers.html" class="sidebar-link">👥 Sinh Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/employees.html" class="sidebar-link">👨‍🍳 Nhân Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/attendance.html" class="sidebar-link">⏱️ Chấm Công</a></li>
+        <li><a href="/canteen-management/frontend/admin/shifts.html" class="sidebar-link">📅 Ca Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/admin/vouchers.html" class="sidebar-link">🎁 Mã Voucher</a></li>
+        <li><a href="/canteen-management/frontend/admin/reviews.html" class="sidebar-link">⭐ Đánh Giá</a></li>
+        <li><a href="/canteen-management/frontend/admin/users.html" class="sidebar-link active">🔐 Người Dùng</a></li>
+        <li><a href="/canteen-management/frontend/admin/reports.html" class="sidebar-link">📈 Báo Cáo Doanh Thu</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Quản Lý Tài Khoản Hệ Thống</h2>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openAddUserModal()">+ Tạo Tài Khoản Mới</button>
+      </header>
+
+      <div class="content-body">
+        <div class="card" style="padding: 1rem;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Người Dùng</th>
+                  <th>Email</th>
+                  <th>Vai Trò (Role)</th>
+                  <th>Số Điện Thoại</th>
+                  <th>Trạng Thái</th>
+                  <th>Ngày Tạo</th>
+                  <th style="text-align: right;">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="7" style="text-align: center; padding: 2rem;">Đang tải danh sách người dùng...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Modal -->
+  <div id="user-modal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="user-modal-title" style="font-size: 1.25rem; font-weight: 800;">Tạo Người Dùng</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeUserModal()">✕</button>
+      </div>
+      <form id="user-form">
+        <input type="hidden" id="usr-id">
+
+        <div class="form-group">
+          <label class="form-label">Họ và Tên</label>
+          <input type="text" id="usr-name" class="form-control" required placeholder="Nguyễn Văn A">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Đăng Nhập</label>
+          <input type="email" id="usr-email" class="form-control" required placeholder="user@canteen.com">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label">Vai Trò (Role)</label>
+            <select id="usr-role" class="form-control" required>
+              <option value="CUSTOMER">CUSTOMER (Sinh Viên)</option>
+              <option value="EMPLOYEE">EMPLOYEE (Nhân viên)</option>
+              <option value="ADMIN">ADMIN (Quản trị viên)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Trạng Thái</label>
+            <select id="usr-status" class="form-control">
+              <option value="ACTIVE">ACTIVE (Hoạt động)</option>
+              <option value="INACTIVE">INACTIVE (Tạm ngưng)</option>
+              <option value="SUSPENDED">SUSPENDED (Bị khóa)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mật Khẩu (Để trống nếu giữ nguyên khi cập nhật)</label>
+          <input type="password" id="usr-password" class="form-control" placeholder="••••••••">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Lưu Người Dùng</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let usersList = [];
+
+    async function loadUsers() {
+      AuthGuard.checkAccess(['ADMIN']);
+
+      try {
+        const res = await API.get('/users/list.php');
+        if (res.success && res.data) {
+          usersList = res.data;
+          renderUsers(usersList);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderUsers(items) {
+      const tbody = document.getElementById('users-tbody');
+      tbody.innerHTML = '';
+
+      items.forEach(u => {
+        const tr = document.createElement('tr');
+        const phone = u.customer_phone || u.employee_phone || '—';
+        const roleColor = u.role === 'ADMIN' ? 'badge-confirmed' : (u.role === 'EMPLOYEE' ? 'badge-preparing' : 'badge-ready');
+
+        tr.innerHTML = `
+          <td>
+            <div class="flex items-center gap-3">
+              <img src="${u.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;">
+              <strong>${u.name}</strong>
+            </div>
+          </td>
+          <td>${u.email}</td>
+          <td><span class="badge ${roleColor}">${u.role}</span></td>
+          <td>${phone}</td>
+          <td><span class="badge ${u.status === 'ACTIVE' ? 'badge-completed' : 'badge-cancelled'}">${u.status}</span></td>
+          <td style="font-size: 0.8rem; color: var(--text-muted);">${new Date(u.created_at).toLocaleDateString('vi-VN')}</td>
+          <td style="text-align: right;">
+            <div class="flex justify-end gap-2">
+              <button class="btn btn-sm btn-secondary" onclick="openEditUserModal(${u.id})">Sửa</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id})">Khóa/Xóa</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAddUserModal() {
+      document.getElementById('user-modal-title').textContent = 'Tạo Tài Khoản Mới';
+      document.getElementById('usr-id').value = '';
+      document.getElementById('usr-name').value = '';
+      document.getElementById('usr-email').value = '';
+      document.getElementById('usr-email').disabled = false;
+      document.getElementById('usr-role').value = 'CUSTOMER';
+      document.getElementById('usr-status').value = 'ACTIVE';
+      document.getElementById('usr-password').value = '';
+      document.getElementById('usr-password').required = true;
+      document.getElementById('user-modal').classList.add('active');
+    }
+
+    function openEditUserModal(id) {
+      const u = usersList.find(x => x.id === id);
+      if (!u) return;
+
+      document.getElementById('user-modal-title').textContent = 'Cập Nhật Người Dùng';
+      document.getElementById('usr-id').value = u.id;
+      document.getElementById('usr-name').value = u.name;
+      document.getElementById('usr-email').value = u.email;
+      document.getElementById('usr-email').disabled = true;
+      document.getElementById('usr-role').value = u.role;
+      document.getElementById('usr-status').value = u.status;
+      document.getElementById('usr-password').value = '';
+      document.getElementById('usr-password').required = false;
+      document.getElementById('user-modal').classList.add('active');
+    }
+
+    function closeUserModal() {
+      document.getElementById('user-modal').classList.remove('active');
+    }
+
+    document.getElementById('user-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('usr-id').value;
+      const payload = {
+        id: id ? parseInt(id) : undefined,
+        name: document.getElementById('usr-name').value.trim(),
+        email: document.getElementById('usr-email').value.trim(),
+        role: document.getElementById('usr-role').value,
+        status: document.getElementById('usr-status').value,
+        password: document.getElementById('usr-password').value || undefined
+      };
+
+      try {
+        const endpoint = id ? '/users/update.php' : '/users/create.php';
+        const res = await API.post(endpoint, payload);
+        if (res.success) {
+          showToast(res.message || 'Lưu người dùng thành công!', 'success');
+          closeUserModal();
+          loadUsers();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    async function deleteUser(id) {
+      if (!confirm('Bạn có chắc chắn muốn khóa/xóa tài khoản này?')) return;
+      try {
+        const res = await API.post('/users/delete.php', { id });
+        showToast(res.message, res.success ? 'success' : 'error');
+        loadUsers();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadUsers);
+  </script>
+</body>
+</html>

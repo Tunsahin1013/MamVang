@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng Điều Khiển Nhân Viên - Mâm Vàng POS</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👨‍🍳</span>
+        <span>Canteen POS</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/employee/dashboard.html" class="sidebar-link active">📊 Tổng Quan</a></li>
+        <li><a href="/canteen-management/frontend/employee/orders.html" class="sidebar-link">📋 Quản Lý Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/employee/products.html" class="sidebar-link">🍲 Món Ăn & Tồn Kho</a></li>
+        <li><a href="/canteen-management/frontend/employee/inventory.html" class="sidebar-link">📦 Nhập / Xuất Kho</a></li>
+        <li><a href="/canteen-management/frontend/employee/attendance.html" class="sidebar-link">⏱️ Chấm Công Ca Làm</a></li>
+        <li><a href="/canteen-management/frontend/employee/shifts.html" class="sidebar-link">📅 Lịch Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/employee/profile.html" class="sidebar-link">👤 Hồ Sơ Cá Nhân</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">Phân hệ nhân viên</span>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Ca Làm Việc & Quầy Thu Ngân</h2>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button class="btn btn-secondary btn-sm theme-toggle-btn" onclick="ThemeManager.toggle()">🌙</button>
+          
+          <div class="flex items-center gap-2">
+            <img class="auth-user-avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+            <div>
+              <strong class="auth-user-name" style="font-size: 0.9rem; display: block;">Nhân Viên</strong>
+              <span class="badge badge-ready" style="font-size: 0.7rem;">EMPLOYEE</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Body -->
+      <div class="content-body">
+        <!-- Attendance Banner -->
+        <div class="card" style="padding: 1.5rem; margin-bottom: 1.75rem; border-left: 6px solid #8b5cf6;">
+          <div class="flex justify-between items-center" style="flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <span class="badge badge-preparing" style="margin-bottom: 0.4rem;">Chấm Công Hôm Nay</span>
+              <h3 style="font-size: 1.35rem; font-weight: 800;" id="today-shift-name">Đang tải lịch ca...</h3>
+              <p style="color: var(--text-muted); font-size: 0.875rem;" id="today-shift-status">Kiểm tra trạng thái điểm danh...</p>
+            </div>
+
+            <div class="flex gap-2">
+              <button id="btn-checkin" class="btn btn-primary" onclick="doCheckIn()">
+                🟢 Check-in Vào Ca
+              </button>
+              <button id="btn-checkout" class="btn btn-secondary" onclick="doCheckOut()" disabled>
+                🔴 Check-out Tan Ca
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="grid grid-cols-4 gap-4" style="margin-bottom: 2rem;">
+          <div class="card" style="padding: 1.25rem;">
+            <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">ĐƠN ĐANG CHỜ</span>
+            <div id="stat-pending-orders" style="font-size: 2rem; font-weight: 900; color: #b45309; margin: 0.35rem 0;">0</div>
+            <a href="/canteen-management/frontend/employee/orders.html" style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">Xử lý ngay →</a>
+          </div>
+
+          <div class="card" style="padding: 1.25rem;">
+            <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">ĐANG NẤU BẾP</span>
+            <div id="stat-preparing-orders" style="font-size: 2rem; font-weight: 900; color: #7e22ce; margin: 0.35rem 0;">0</div>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Đơn đang thực hiện</span>
+          </div>
+
+          <div class="card" style="padding: 1.25rem;">
+            <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">ĐÃ SẴN SÀNG NHẬN</span>
+            <div id="stat-ready-orders" style="font-size: 2rem; font-weight: 900; color: #0f766e; margin: 0.35rem 0;">0</div>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Chờ khách lấy món</span>
+          </div>
+
+          <div class="card" style="padding: 1.25rem;">
+            <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">MÓN SẮP HẾT KHO</span>
+            <div id="stat-low-stock" style="font-size: 2rem; font-weight: 900; color: var(--danger); margin: 0.35rem 0;">0</div>
+            <a href="/canteen-management/frontend/employee/inventory.html" style="font-size: 0.8rem; color: var(--danger); font-weight: 600;">Kiểm tra kho →</a>
+          </div>
+        </div>
+
+        <!-- Live Kitchen Order Queue -->
+        <div class="card" style="padding: 1.5rem;">
+          <div class="flex justify-between items-center" style="margin-bottom: 1.25rem;">
+            <div>
+              <h3 style="font-size: 1.25rem; font-weight: 800;">Hàng Đợi Chế Biến & Bán Hàng Trực Tiếp</h3>
+              <p style="color: var(--text-muted); font-size: 0.85rem;">Các đơn hàng vừa đặt cần bếp và quầy thu ngân phục vụ</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="loadDashboardOrders()">🔄 Làm mới</button>
+          </div>
+
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã Đơn</th>
+                  <th>Sinh Viên</th>
+                  <th>Chi Tiết Món</th>
+                  <th>Vị Trí</th>
+                  <th>Số Tiền</th>
+                  <th>Trạng Thái</th>
+                  <th style="text-align: right;">Cập Nhật Nhanh</th>
+                </tr>
+              </thead>
+              <tbody id="live-orders-body">
+                <tr><td colspan="7" style="text-align: center; padding: 2rem;">Đang tải đơn hàng...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    async function initDashboard() {
+      AuthGuard.checkAccess(['EMPLOYEE', 'ADMIN']);
+
+      await checkTodayAttendance();
+      await loadDashboardOrders();
+      await loadLowStockCount();
+    }
+
+    async function checkTodayAttendance() {
+      try {
+        const res = await API.get('/attendance/today.php');
+        if (res.success && res.data) {
+          const shift = res.data.assigned_shift;
+          const att = res.data.attendance;
+
+          if (shift) {
+            document.getElementById('today-shift-name').textContent = `${shift.name} (${shift.start_time.substring(0,5)} - ${shift.end_time.substring(0,5)})`;
+          } else {
+            document.getElementById('today-shift-name').textContent = 'Ca Linh Hoạt / Toàn Thời Gian';
+          }
+
+          if (res.data.checked_in) {
+            if (res.data.checked_out) {
+              document.getElementById('today-shift-status').textContent = `✓ Đã hoàn thành ca: Ra về lúc ${new Date(att.check_out_time).toLocaleTimeString('vi-VN')} (${att.total_hours}h).`;
+              document.getElementById('btn-checkin').disabled = true;
+              document.getElementById('btn-checkout').disabled = true;
+            } else {
+              document.getElementById('today-shift-status').textContent = `● Đang trong ca làm: Đã Check-in lúc ${new Date(att.check_in_time).toLocaleTimeString('vi-VN')}.`;
+              document.getElementById('btn-checkin').disabled = true;
+              document.getElementById('btn-checkout').disabled = false;
+            }
+          } else {
+            document.getElementById('today-shift-status').textContent = 'Chưa điểm danh vào ca hôm nay.';
+            document.getElementById('btn-checkin').disabled = false;
+            document.getElementById('btn-checkout').disabled = true;
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function doCheckIn() {
+      try {
+        const res = await API.post('/attendance/check_in.php', {});
+        if (res.success) {
+          showToast(res.message, 'success');
+          checkTodayAttendance();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function doCheckOut() {
+      try {
+        const res = await API.post('/attendance/check_out.php', {});
+        if (res.success) {
+          showToast(res.message, 'success');
+          checkTodayAttendance();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function loadDashboardOrders() {
+      try {
+        const res = await API.get('/orders/list.php', { limit: 15 });
+        if (res.success && res.data) {
+          const items = res.data.items || [];
+          
+          let pending = 0, preparing = 0, ready = 0;
+          items.forEach(o => {
+            if (o.order_status === 'PENDING') pending++;
+            if (o.order_status === 'PREPARING') preparing++;
+            if (o.order_status === 'READY') ready++;
+          });
+
+          document.getElementById('stat-pending-orders').textContent = pending;
+          document.getElementById('stat-preparing-orders').textContent = preparing;
+          document.getElementById('stat-ready-orders').textContent = ready;
+
+          renderLiveOrders(items);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadLowStockCount() {
+      try {
+        const res = await API.get('/inventory/low_stock.php');
+        if (res.success && res.data) {
+          document.getElementById('stat-low-stock').textContent = res.data.count || 0;
+        }
+      } catch (e) {}
+    }
+
+    function renderLiveOrders(orders) {
+      const tbody = document.getElementById('live-orders-body');
+      tbody.innerHTML = '';
+
+      if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem;">Không có đơn hàng nào cần xử lý.</td></tr>`;
+        return;
+      }
+
+      orders.slice(0, 8).forEach(o => {
+        const tr = document.createElement('tr');
+        const formattedAmount = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(o.final_amount);
+
+        const statusBadges = {
+          'PENDING': '<span class="badge badge-pending">Chờ xác nhận</span>',
+          'CONFIRMED': '<span class="badge badge-confirmed">Đã nhận</span>',
+          'PREPARING': '<span class="badge badge-preparing">Đang nấu</span>',
+          'READY': '<span class="badge badge-ready">Đã xong</span>',
+          'COMPLETED': '<span class="badge badge-completed">Hoàn tất</span>',
+          'CANCELLED': '<span class="badge badge-cancelled">Đã hủy</span>'
+        };
+
+        // Quick next status action button
+        let nextBtn = '';
+        if (o.order_status === 'PENDING') {
+          nextBtn = `<button class="btn btn-sm btn-primary" onclick="updateOrderStatus(${o.id}, 'CONFIRMED')">Nhận Đơn</button>`;
+        } else if (o.order_status === 'CONFIRMED') {
+          nextBtn = `<button class="btn btn-sm" style="background: #7e22ce; color: white;" onclick="updateOrderStatus(${o.id}, 'PREPARING')">Nấu Bếp</button>`;
+        } else if (o.order_status === 'PREPARING') {
+          nextBtn = `<button class="btn btn-sm btn-success" onclick="updateOrderStatus(${o.id}, 'READY')">Xong Món</button>`;
+        } else if (o.order_status === 'READY') {
+          nextBtn = `<button class="btn btn-sm btn-secondary" onclick="updateOrderStatus(${o.id}, 'COMPLETED')">Giao Xong</button>`;
+        }
+
+        tr.innerHTML = `
+          <td><strong>${o.order_number}</strong></td>
+          <td>${o.customer_name || 'Khách'}</td>
+          <td style="max-width: 220px; font-size: 0.85rem;">${o.items_summary || (o.item_count + ' món')}</td>
+          <td>${o.table_number || 'Mang đi'}</td>
+          <td style="font-weight: 700; color: var(--primary);">${formattedAmount}</td>
+          <td>${statusBadges[o.order_status] || o.order_status}</td>
+          <td style="text-align: right;">${nextBtn}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function updateOrderStatus(orderId, nextStatus) {
+      try {
+        const res = await API.post('/orders/update_status.php', {
+          order_id: orderId,
+          status: nextStatus
+        });
+        if (res.success) {
+          showToast(`Đã chuyển đơn sang "${nextStatus}"!`, 'success');
+          loadDashboardOrders();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initDashboard);
+  </script>
+</body>
+</html>

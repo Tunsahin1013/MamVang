@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hồ Sơ Cá Nhân - Mâm Vàng</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <header class="customer-nav">
+    <div class="container nav-container">
+      <a href="/canteen-management/frontend/customer/home.html" class="flex items-center gap-2" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">
+        <span style="font-size: 1.7rem;">🍜</span> Mâm Vàng
+      </a>
+      <a href="/canteen-management/frontend/customer/home.html" class="btn btn-secondary btn-sm">🍽️ Trang Chủ</a>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;">Hồ Sơ Của Tôi</h1>
+
+    <div class="grid grid-cols-3 gap-6">
+      <!-- Profile Card (1 col) -->
+      <div>
+        <div class="card" style="padding: 2rem; text-align: center;">
+          <img class="auth-user-avatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80" style="width: 88px; height: 88px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; border: 3px solid var(--primary);">
+          <h2 class="auth-user-name" style="font-size: 1.35rem; font-weight: 800;">Sinh Viên</h2>
+          <p class="auth-user-email" style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;">user@canteen.com</p>
+
+          <div style="background: var(--bg-main); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem; text-align: left;">
+            <div class="flex justify-between items-center" style="margin-bottom: 0.5rem; font-size: 0.9rem;">
+              <span>Điểm tích lũy:</span>
+              <strong class="auth-user-points" style="color: var(--primary);">0</strong>
+            </div>
+            <div class="flex justify-between items-center" style="font-size: 0.9rem;">
+              <span>Số dư ví:</span>
+              <strong class="auth-user-balance" style="color: var(--success);">0đ</strong>
+            </div>
+          </div>
+
+          <button class="btn btn-danger btn-block btn-sm" onclick="API.logout()">
+            Đăng Xuất Tài Khoản
+          </button>
+        </div>
+      </div>
+
+      <!-- Update forms (2 cols) -->
+      <div style="grid-column: span 2;">
+        <!-- Edit Profile Form -->
+        <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+          <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 1.25rem;">Cập Nhật Thông Tin</h3>
+          <form id="edit-profile-form">
+            <div class="form-group">
+              <label class="form-label">Họ và Tên</label>
+              <input type="text" id="prof-name" class="form-control" required>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="form-label">Số Điện Thoại</label>
+                <input type="tel" id="prof-phone" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Địa Chỉ Thường Nhận Đồ Ăn</label>
+                <input type="text" id="prof-address" class="form-control" placeholder="VD: Phòng 302 KTX, Khoa CNTT...">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Lưu Thay Đổi</button>
+          </form>
+        </div>
+
+        <!-- Change Password Form -->
+        <div class="card" style="padding: 2rem;">
+          <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 1.25rem;">Đổi Mật Khẩu</h3>
+          <form id="change-pass-form">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="form-label">Mật Khẩu Hiện Tại</label>
+                <input type="password" id="cur-pass" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Mật Khẩu Mới</label>
+                <input type="password" id="new-pass" class="form-control" minlength="6" required>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-secondary" style="margin-top: 0.5rem;">Cập Nhật Mật Khẩu</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    async function initProfile() {
+      AuthGuard.checkAccess(['CUSTOMER', 'ADMIN', 'EMPLOYEE']);
+
+      try {
+        const res = await API.get('/auth/me.php');
+        if (res.success && res.data) {
+          const user = res.data;
+          document.getElementById('prof-name').value = user.name || '';
+          document.getElementById('prof-phone').value = user.customer_profile?.phone || '';
+          document.getElementById('prof-address').value = user.customer_profile?.address || '';
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('prof-name').value.trim();
+      const phone = document.getElementById('prof-phone').value.trim();
+      const address = document.getElementById('prof-address').value.trim();
+
+      try {
+        const res = await API.post('/customers/update.php', { name, phone, address });
+        if (res.success) {
+          showToast('Cập nhật thông tin thành công!', 'success');
+          // Update cached user
+          const cur = API.getUser();
+          if (cur) {
+            cur.name = name;
+            API.setUser(cur);
+          }
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    document.getElementById('change-pass-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const current_password = document.getElementById('cur-pass').value;
+      const new_password = document.getElementById('new-pass').value;
+
+      try {
+        const res = await API.post('/auth/change_password.php', { current_password, new_password });
+        if (res.success) {
+          showToast('Đổi mật khẩu thành công!', 'success');
+          document.getElementById('cur-pass').value = '';
+          document.getElementById('new-pass').value = '';
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', initProfile);
+  </script>
+</body>
+</html>

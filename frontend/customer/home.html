@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trang Chủ - Mâm Vàng Đặt Món</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+  <style>
+    .cat-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 0.6rem 1.2rem;
+      border-radius: 9999px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .cat-pill:hover, .cat-pill.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Customer Header -->
+  <header class="customer-nav">
+    <div class="container nav-container">
+      <a href="/canteen-management/frontend/customer/home.html" class="flex items-center gap-2" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">
+        <span style="font-size: 1.7rem;">🍜</span> Mâm Vàng
+      </a>
+
+      <!-- Search bar -->
+      <div style="flex-grow: 1; max-width: 440px; margin: 0 1.5rem;">
+        <input type="text" id="header-search" class="form-control" placeholder="Tìm kiếm cơm trưa, bún phở, trà sữa..." onkeypress="handleSearch(event)">
+      </div>
+
+      <!-- User actions -->
+      <div class="flex items-center gap-3">
+        <button class="btn btn-secondary btn-sm theme-toggle-btn" onclick="ThemeManager.toggle()">🌙</button>
+
+        <a href="/canteen-management/frontend/customer/wallet.html" class="btn btn-secondary btn-sm" title="Ví Căn Tin">
+          💳 <span class="auth-user-balance">0đ</span>
+        </a>
+
+        <a href="/canteen-management/frontend/customer/cart.html" class="btn btn-primary btn-sm" style="position: relative;">
+          🛒 Giỏ Hàng
+          <span class="badge cart-count-badge" style="position: absolute; top: -8px; right: -8px; background: var(--danger); color: white; padding: 2px 6px; font-size: 0.7rem; border-radius: 9999px;">0</span>
+        </a>
+
+        <div id="user-menu" class="flex items-center gap-2">
+          <a href="/canteen-management/frontend/customer/profile.html" class="flex items-center gap-2" style="font-weight: 600; font-size: 0.9rem;">
+            <img class="auth-user-avatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+            <span class="auth-user-name" style="max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Sinh Viên</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sub navigation -->
+  <nav style="background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 0.5rem 0;">
+    <div class="container flex gap-4" style="overflow-x: auto; font-size: 0.9rem; font-weight: 600;">
+      <a href="/canteen-management/frontend/customer/home.html" style="color: var(--primary); padding: 0.4rem 0.6rem;">Trang Chủ</a>
+      <a href="/canteen-management/frontend/customer/products.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Tất Cả Món Ăn</a>
+      <a href="/canteen-management/frontend/customer/orders.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Lịch Sử Đơn Hàng</a>
+      <a href="/canteen-management/frontend/customer/vouchers.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Mã Giảm Giá</a>
+      <a href="/canteen-management/frontend/customer/wallet.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Ví Tiền Căn Tin</a>
+      <a href="/canteen-management/frontend/customer/notifications.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Thông Báo</a>
+      <a href="/canteen-management/frontend/customer/chat.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Hỗ Trợ / Chat</a>
+    </div>
+  </nav>
+
+  <main class="container" style="padding-top: 1.75rem; padding-bottom: 3.5rem;">
+    <!-- Welcome Hero Promo -->
+    <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 20px; color: white; padding: 2.2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-md);">
+      <div>
+        <span style="background: rgba(255,255,255,0.25); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700;">ƯU ĐÃI HÔM NAY</span>
+        <h2 style="font-size: 1.85rem; font-weight: 800; margin: 0.6rem 0;">Đặt Cơm Nóng Hổi, Giao Nhanh Tận Bàn</h2>
+        <p style="opacity: 0.9; font-size: 0.95rem; margin-bottom: 1.25rem;">Nhập mã <strong>CHAOBANMOI</strong> để được giảm ngay 20% cho đơn hàng đầu tiên!</p>
+        <a href="/canteen-management/frontend/customer/products.html" class="btn" style="background: white; color: var(--primary-dark); font-weight: 700;">Xem Toàn Bộ Thực Đơn →</a>
+      </div>
+      <div style="font-size: 5rem; display: none;" class="hero-icon">🍲</div>
+    </div>
+
+    <!-- Category Pills -->
+    <section style="margin-bottom: 2.5rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem;">Danh Mục Món Ăn</h3>
+      <div id="category-pills" class="flex gap-2" style="overflow-x: auto; padding-bottom: 0.5rem;">
+        <button class="cat-pill active" onclick="filterByCategory(0, this)">Tất Cả Món</button>
+      </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section style="margin-bottom: 3rem;">
+      <div class="flex justify-between items-center" style="margin-bottom: 1.25rem;">
+        <div>
+          <h3 style="font-size: 1.35rem; font-weight: 800;">⭐ Món Nổi Bật Bán Chạy Nhất</h3>
+          <p style="color: var(--text-muted); font-size: 0.875rem;">Được các bạn học sinh Sinh Viên và cán bộ yêu thích</p>
+        </div>
+        <a href="/canteen-management/frontend/customer/products.html" style="color: var(--primary); font-weight: 700; font-size: 0.9rem;">Xem tất cả →</a>
+      </div>
+
+      <div id="featured-products-grid" class="grid grid-cols-4 gap-4">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- All Products Section -->
+    <section>
+      <div class="flex justify-between items-center" style="margin-bottom: 1.25rem;">
+        <div>
+          <h3 style="font-size: 1.35rem; font-weight: 800;">🍽️ Thực Đơn Hàng Ngày</h3>
+          <p style="color: var(--text-muted); font-size: 0.875rem;">Đảm bảo vệ sinh an toàn thực phẩm, nguyên liệu tươi mới</p>
+        </div>
+      </div>
+
+      <div id="all-products-grid" class="grid grid-cols-4 gap-4">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+  </main>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let currentCategoryId = 0;
+    let allProducts = [];
+
+    async function initHome() {
+      AuthGuard.checkAccess(); // Optional guard, if logged in updates user info
+
+      try {
+        // Load categories
+        const catRes = await API.get('/categories/list.php');
+        if (catRes.success && catRes.data) {
+          const catContainer = document.getElementById('category-pills');
+          catRes.data.forEach(c => {
+            const btn = document.createElement('button');
+            btn.className = 'cat-pill';
+            btn.textContent = `${c.name} (${c.product_count || 0})`;
+            btn.onclick = () => filterByCategory(c.id, btn);
+            catContainer.appendChild(btn);
+          });
+        }
+
+        // Load products
+        const prodRes = await API.get('/products/list.php', { limit: 20 });
+        if (prodRes.success && prodRes.data) {
+          allProducts = prodRes.data.items || [];
+          renderProducts(allProducts);
+        }
+      } catch (err) {
+        console.error('Error loading home data:', err);
+      }
+    }
+
+    function renderProducts(products) {
+      const featGrid = document.getElementById('featured-products-grid');
+      const allGrid = document.getElementById('all-products-grid');
+
+      featGrid.innerHTML = '';
+      allGrid.innerHTML = '';
+
+      const featured = products.filter(p => p.is_featured);
+      const displayFeat = featured.length > 0 ? featured : products.slice(0, 4);
+
+      displayFeat.forEach(p => featGrid.appendChild(createProductCard(p)));
+      products.forEach(p => allGrid.appendChild(createProductCard(p)));
+    }
+
+    function createProductCard(p) {
+      const card = document.createElement('div');
+      card.className = 'product-card';
+
+      const formattedPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price);
+
+      card.innerHTML = `
+        <div class="product-image-wrap">
+          <img src="${p.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80'}" alt="${p.name}" class="product-image" loading="lazy">
+          <span class="badge" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.65); color: white; backdrop-filter: blur(4px);">
+            ⭐ ${p.avg_rating || 5.0} (${p.review_count || 0})
+          </span>
+          ${p.stock_quantity <= 0 ? '<span class="badge badge-cancelled" style="position: absolute; top: 10px; right: 10px;">Hết hàng</span>' : ''}
+        </div>
+        <div class="product-info">
+          <a href="/canteen-management/frontend/customer/product-detail.html?id=${p.id}" class="product-title" title="${p.name}">${p.name}</a>
+          <p class="product-desc">${p.description || 'Món ăn căn tin thơm ngon, dinh dưỡng.'}</p>
+          <div class="flex justify-between items-center" style="margin-top: auto; padding-top: 0.75rem;">
+            <span class="product-price">${formattedPrice}</span>
+            <button class="btn btn-sm btn-primary" ${p.stock_quantity <= 0 ? 'disabled' : ''} onclick="quickAddToCart(${p.id}, event)">
+              + Thêm
+            </button>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    function quickAddToCart(productId, event) {
+      event.preventDefault();
+      event.stopPropagation();
+      const product = allProducts.find(p => p.id === productId);
+      if (product) {
+        Cart.add(product, 1);
+      }
+    }
+
+    function filterByCategory(catId, btnEl) {
+      document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+      currentCategoryId = catId;
+
+      if (catId === 0) {
+        renderProducts(allProducts);
+      } else {
+        const filtered = allProducts.filter(p => p.category_id === catId);
+        renderProducts(filtered);
+      }
+    }
+
+    function handleSearch(e) {
+      if (e.key === 'Enter') {
+        const query = e.target.value.trim();
+        window.location.href = `/frontend/customer/products.html?search=${encodeURIComponent(query)}`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initHome);
+  </script>
+</body>
+</html>

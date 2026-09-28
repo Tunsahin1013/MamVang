@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kho Hàng & Định Giá - Canteen Admin</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👑</span>
+        <span>Canteen Admin</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/admin/dashboard.html" class="sidebar-link">📊 Dashboard</a></li>
+        <li><a href="/canteen-management/frontend/admin/orders.html" class="sidebar-link">📋 Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/products.html" class="sidebar-link">🍲 Món Ăn</a></li>
+        <li><a href="/canteen-management/frontend/admin/categories.html" class="sidebar-link">🏷️ Danh Mục</a></li>
+        <li><a href="/canteen-management/frontend/admin/inventory.html" class="sidebar-link active">📦 Kho Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/suppliers.html" class="sidebar-link">🚚 Nhà Cung Cấp</a></li>
+        <li><a href="/canteen-management/frontend/admin/customers.html" class="sidebar-link">👥 Sinh Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/employees.html" class="sidebar-link">👨‍🍳 Nhân Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/attendance.html" class="sidebar-link">⏱️ Chấm Công</a></li>
+        <li><a href="/canteen-management/frontend/admin/shifts.html" class="sidebar-link">📅 Ca Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/admin/vouchers.html" class="sidebar-link">🎁 Mã Voucher</a></li>
+        <li><a href="/canteen-management/frontend/admin/reviews.html" class="sidebar-link">⭐ Đánh Giá</a></li>
+        <li><a href="/canteen-management/frontend/admin/users.html" class="sidebar-link">🔐 Người Dùng</a></li>
+        <li><a href="/canteen-management/frontend/admin/reports.html" class="sidebar-link">📈 Báo Cáo Doanh Thu</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Quản Trị Tồn Kho & Giá Trị Hàng Hóa</h2>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <!-- Valuation Summary -->
+        <div class="grid grid-cols-4 gap-4" style="margin-bottom: 2rem;">
+          <div class="card" style="padding: 1.25rem;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">TỔNG GIÁ TRỊ VỐN KHO</span>
+            <div id="inv-total-val" style="font-size: 1.75rem; font-weight: 900; color: var(--primary); margin: 0.4rem 0;">0đ</div>
+          </div>
+          <div class="card" style="padding: 1.25rem;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">TỔNG MẶT HÀNG (SKU)</span>
+            <div id="inv-total-skus" style="font-size: 1.75rem; font-weight: 900; color: #0284c7; margin: 0.4rem 0;">0</div>
+          </div>
+          <div class="card" style="padding: 1.25rem;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">SẮP HẾT (<= 10)</span>
+            <div id="inv-low-skus" style="font-size: 1.75rem; font-weight: 900; color: var(--warning); margin: 0.4rem 0;">0</div>
+          </div>
+          <div class="card" style="padding: 1.25rem;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">HẾT HÀNG (0 PHẦN)</span>
+            <div id="inv-out-skus" style="font-size: 1.75rem; font-weight: 900; color: var(--danger); margin: 0.4rem 0;">0</div>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 1rem;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Món Ăn</th>
+                  <th>Danh Mục</th>
+                  <th>Số Lượng Tồn</th>
+                  <th>Giá Vốn Nhập</th>
+                  <th>Tổng Giá Trị Tồn</th>
+                  <th>Trạng Thái Cảnh Báo</th>
+                </tr>
+              </thead>
+              <tbody id="admin-inventory-tbody">
+                <tr><td colspan="6" style="text-align: center; padding: 2rem;">Đang tải tồn kho...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    async function loadAdminInventory() {
+      AuthGuard.checkAccess(['ADMIN']);
+
+      try {
+        const res = await API.get('/inventory/list.php');
+        if (res.success && res.data) {
+          const sum = res.data.summary || {};
+          document.getElementById('inv-total-val').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(sum.total_valuation || 0);
+          document.getElementById('inv-total-skus').textContent = sum.total_items || 0;
+          document.getElementById('inv-low-skus').textContent = sum.low_stock_count || 0;
+          document.getElementById('inv-out-skus').textContent = sum.out_of_stock_count || 0;
+
+          renderItems(res.data.items || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderItems(items) {
+      const tbody = document.getElementById('admin-inventory-tbody');
+      tbody.innerHTML = '';
+
+      items.forEach(it => {
+        const tr = document.createElement('tr');
+        const costFmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(it.cost_price);
+        const valFmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(it.total_inventory_value);
+
+        let badge = '<span class="badge badge-completed">Đủ hàng</span>';
+        if (it.stock_alert_level === 'OUT_OF_STOCK') badge = '<span class="badge badge-cancelled">Hết hàng</span>';
+        else if (it.stock_alert_level === 'LOW_STOCK') badge = '<span class="badge badge-pending">Sắp hết</span>';
+
+        tr.innerHTML = `
+          <td><strong>${it.name}</strong></td>
+          <td>${it.category_name}</td>
+          <td style="font-weight: 800;">${it.stock_quantity} phần</td>
+          <td>${costFmt}</td>
+          <td style="font-weight: 700; color: var(--primary);">${valFmt}</td>
+          <td>${badge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadAdminInventory);
+  </script>
+</body>
+</html>

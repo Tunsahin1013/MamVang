@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Danh Mục Món Ăn - Canteen Admin</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👑</span>
+        <span>Canteen Admin</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/admin/dashboard.html" class="sidebar-link">📊 Dashboard</a></li>
+        <li><a href="/canteen-management/frontend/admin/orders.html" class="sidebar-link">📋 Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/products.html" class="sidebar-link">🍲 Món Ăn</a></li>
+        <li><a href="/canteen-management/frontend/admin/categories.html" class="sidebar-link active">🏷️ Danh Mục</a></li>
+        <li><a href="/canteen-management/frontend/admin/inventory.html" class="sidebar-link">📦 Kho Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/suppliers.html" class="sidebar-link">🚚 Nhà Cung Cấp</a></li>
+        <li><a href="/canteen-management/frontend/admin/customers.html" class="sidebar-link">👥 Sinh Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/employees.html" class="sidebar-link">👨‍🍳 Nhân Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/attendance.html" class="sidebar-link">⏱️ Chấm Công</a></li>
+        <li><a href="/canteen-management/frontend/admin/shifts.html" class="sidebar-link">📅 Ca Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/admin/vouchers.html" class="sidebar-link">🎁 Mã Voucher</a></li>
+        <li><a href="/canteen-management/frontend/admin/reviews.html" class="sidebar-link">⭐ Đánh Giá</a></li>
+        <li><a href="/canteen-management/frontend/admin/users.html" class="sidebar-link">🔐 Người Dùng</a></li>
+        <li><a href="/canteen-management/frontend/admin/reports.html" class="sidebar-link">📈 Báo Cáo Doanh Thu</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Quản Lý Danh Mục Món Ăn</h2>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Thêm Danh Mục Mới</button>
+      </header>
+
+      <div class="content-body">
+        <div class="card" style="padding: 1rem;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Tên Danh Mục</th>
+                  <th>Slug URL</th>
+                  <th>Mô Tả</th>
+                  <th>Số Món Ăn</th>
+                  <th>Trạng Thái</th>
+                  <th style="text-align: right;">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="categories-tbody">
+                <tr><td colspan="7" style="text-align: center; padding: 2rem;">Đang tải danh mục...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Modal -->
+  <div id="category-modal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title" style="font-size: 1.25rem; font-weight: 800;">Thêm Danh Mục</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
+      </div>
+      <form id="category-form">
+        <input type="hidden" id="cat-id">
+        <div class="form-group">
+          <label class="form-label">Tên Danh Mục</label>
+          <input type="text" id="cat-name" class="form-control" required placeholder="VD: Cơm Trưa & Món Mặn">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mô Tả</label>
+          <textarea id="cat-desc" class="form-control" rows="3" placeholder="Mô tả về danh mục món ăn này"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hình Ảnh (URL)</label>
+          <input type="url" id="cat-image" class="form-control" placeholder="https://images.unsplash.com/...">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Lưu Danh Mục</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let categoryList = [];
+
+    async function loadCategories() {
+      AuthGuard.checkAccess(['ADMIN']);
+
+      try {
+        const res = await API.get('/categories/list.php', { status: 'ALL' });
+        if (res.success && res.data) {
+          categoryList = res.data;
+          renderCategories(categoryList);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderCategories(items) {
+      const tbody = document.getElementById('categories-tbody');
+      tbody.innerHTML = '';
+
+      items.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>#${c.id}</strong></td>
+          <td><strong>${c.name}</strong></td>
+          <td style="font-family: monospace; color: var(--text-muted);">${c.slug}</td>
+          <td style="max-width: 250px; font-size: 0.85rem;">${c.description || ''}</td>
+          <td><span class="badge badge-ready">${c.product_count || 0} món</span></td>
+          <td><span class="badge badge-completed">${c.status}</span></td>
+          <td style="text-align: right;">
+            <div class="flex justify-end gap-2">
+              <button class="btn btn-sm btn-secondary" onclick="openEditModal(${c.id})">Sửa</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteCategory(${c.id})">Xóa</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAddModal() {
+      document.getElementById('modal-title').textContent = 'Thêm Danh Mục Mới';
+      document.getElementById('cat-id').value = '';
+      document.getElementById('cat-name').value = '';
+      document.getElementById('cat-desc').value = '';
+      document.getElementById('cat-image').value = '';
+      document.getElementById('category-modal').classList.add('active');
+    }
+
+    function openEditModal(id) {
+      const cat = categoryList.find(c => c.id === id);
+      if (!cat) return;
+      document.getElementById('modal-title').textContent = 'Cập Nhật Danh Mục';
+      document.getElementById('cat-id').value = cat.id;
+      document.getElementById('cat-name').value = cat.name;
+      document.getElementById('cat-desc').value = cat.description || '';
+      document.getElementById('cat-image').value = cat.image || '';
+      document.getElementById('category-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('category-modal').classList.remove('active');
+    }
+
+    document.getElementById('category-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('cat-id').value;
+      const name = document.getElementById('cat-name').value.trim();
+      const description = document.getElementById('cat-desc').value.trim();
+      const image = document.getElementById('cat-image').value.trim();
+
+      try {
+        const endpoint = id ? '/categories/update.php' : '/categories/create.php';
+        const res = await API.post(endpoint, { id: id ? parseInt(id) : undefined, name, description, image });
+        if (res.success) {
+          showToast(res.message || 'Lưu danh mục thành công!', 'success');
+          closeModal();
+          loadCategories();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    async function deleteCategory(id) {
+      if (!confirm('Bạn có chắc chắn muốn xóa danh mục này?')) return;
+      try {
+        const res = await API.post('/categories/delete.php', { id });
+        if (res.success) {
+          showToast('Xóa danh mục thành công!', 'success');
+          loadCategories();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCategories);
+  </script>
+</body>
+</html>

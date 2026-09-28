@@ -1,0 +1,6 @@
+{
+  "name": "Canteen Management System - Hệ thống Mâm Vàng",
+  "description": "Hệ thống Mâm Vàng toàn diện (PHP 8.x thuần, MySQL, PDO, JWT, HTML5/CSS3/JavaScript ES6+) cho Admin, Nhân viên và Sinh Viên với POS, đơn hàng, kho, ca làm, ví tiền và báo cáo doanh thu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

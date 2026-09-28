@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lịch Sử Đơn Hàng - Mâm Vàng</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <header class="customer-nav">
+    <div class="container nav-container">
+      <a href="/canteen-management/frontend/customer/home.html" class="flex items-center gap-2" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">
+        <span style="font-size: 1.7rem;">🍜</span> Mâm Vàng
+      </a>
+      <div class="flex items-center gap-3">
+        <a href="/canteen-management/frontend/customer/cart.html" class="btn btn-primary btn-sm" style="position: relative;">
+          🛒 Giỏ Hàng <span class="badge cart-count-badge" style="position: absolute; top: -8px; right: -8px; background: var(--danger); color: white; padding: 2px 6px; font-size: 0.7rem; border-radius: 9999px;">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <nav style="background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 0.5rem 0;">
+    <div class="container flex gap-4" style="overflow-x: auto; font-size: 0.9rem; font-weight: 600;">
+      <a href="/canteen-management/frontend/customer/home.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Trang Chủ</a>
+      <a href="/canteen-management/frontend/customer/products.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Tất Cả Món Ăn</a>
+      <a href="/canteen-management/frontend/customer/orders.html" style="color: var(--primary); padding: 0.4rem 0.6rem;">Lịch Sử Đơn Hàng</a>
+      <a href="/canteen-management/frontend/customer/vouchers.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Mã Giảm Giá</a>
+      <a href="/canteen-management/frontend/customer/wallet.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Ví Tiền Căn Tin</a>
+    </div>
+  </nav>
+
+  <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <div class="flex justify-between items-center" style="margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+      <h1 style="font-size: 1.75rem; font-weight: 800;">Đơn Hàng Của Tôi</h1>
+      
+      <!-- Filter tabs -->
+      <div class="flex gap-2" style="overflow-x: auto;">
+        <button class="btn btn-secondary btn-sm filter-btn active" onclick="filterStatus('ALL', this)">Tất Cả</button>
+        <button class="btn btn-secondary btn-sm filter-btn" onclick="filterStatus('PENDING', this)">Chờ duyệt</button>
+        <button class="btn btn-secondary btn-sm filter-btn" onclick="filterStatus('PREPARING', this)">Đang nấu</button>
+        <button class="btn btn-secondary btn-sm filter-btn" onclick="filterStatus('READY', this)">Đã nấu xong</button>
+        <button class="btn btn-secondary btn-sm filter-btn" onclick="filterStatus('COMPLETED', this)">Hoàn tất</button>
+      </div>
+    </div>
+
+    <!-- Orders Table / Cards -->
+    <div class="card" style="padding: 1rem;">
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Mã Đơn</th>
+              <th>Thời Gian</th>
+              <th>Món Ăn</th>
+              <th>Vị Trí</th>
+              <th>Tổng Tiền</th>
+              <th>Thanh Toán</th>
+              <th>Trạng Thái</th>
+              <th style="text-align: right;">Hành Động</th>
+            </tr>
+          </thead>
+          <tbody id="orders-table-body">
+            <tr><td colspan="8" style="text-align: center; padding: 2rem;">Đang tải lịch sử đơn hàng...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let currentFilter = 'ALL';
+
+    async function loadOrders() {
+      AuthGuard.checkAccess(['CUSTOMER', 'ADMIN', 'EMPLOYEE']);
+
+      try {
+        const res = await API.get('/orders/list.php', { status: currentFilter });
+        if (res.success) {
+          renderOrders(res.data.items || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderOrders(orders) {
+      const tbody = document.getElementById('orders-table-body');
+      tbody.innerHTML = '';
+
+      if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">Không có đơn hàng nào trong mục này.</td></tr>`;
+        return;
+      }
+
+      orders.forEach(o => {
+        const tr = document.createElement('tr');
+        const formattedDate = new Date(o.created_at).toLocaleString('vi-VN');
+        const formattedAmount = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(o.final_amount);
+
+        const statusBadges = {
+          'PENDING': '<span class="badge badge-pending">Chờ xác nhận</span>',
+          'CONFIRMED': '<span class="badge badge-confirmed">Đã nhận đơn</span>',
+          'PREPARING': '<span class="badge badge-preparing">Đang nấu</span>',
+          'READY': '<span class="badge badge-ready">Sẵn sàng nhận</span>',
+          'COMPLETED': '<span class="badge badge-completed">Hoàn tất</span>',
+          'CANCELLED': '<span class="badge badge-cancelled">Đã hủy</span>'
+        };
+
+        const badgeHtml = statusBadges[o.order_status] || `<span class="badge">${o.order_status}</span>`;
+
+        tr.innerHTML = `
+          <td><strong>${o.order_number}</strong></td>
+          <td style="font-size: 0.825rem; color: var(--text-muted);">${formattedDate}</td>
+          <td style="max-width: 220px; font-size: 0.85rem; color: var(--text-main);">${o.items_summary || (o.item_count + ' món')}</td>
+          <td>${o.table_number || 'Mang đi'}</td>
+          <td style="font-weight: 700; color: var(--primary);">${formattedAmount}</td>
+          <td><span style="font-size: 0.8rem; font-weight: 600;">${o.payment_method} (${o.payment_status})</span></td>
+          <td>${badgeHtml}</td>
+          <td style="text-align: right;">
+            <div class="flex justify-end gap-2">
+              <a href="/canteen-management/frontend/customer/order-detail.html?id=${o.id}" class="btn btn-sm btn-secondary">Chi Tiết</a>
+              ${o.order_status === 'PENDING' ? `<button class="btn btn-sm btn-danger" onclick="cancelOrder(${o.id})">Hủy</button>` : ''}
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterStatus(status, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = status;
+      loadOrders();
+    }
+
+    async function cancelOrder(orderId) {
+      if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?')) return;
+
+      try {
+        const res = await API.post('/orders/cancel.php', { order_id: orderId });
+        if (res.success) {
+          showToast('Đã hủy đơn hàng thành công!', 'success');
+          loadOrders();
+        } else {
+          showToast(res.message || 'Không thể hủy đơn', 'error');
+        }
+      } catch (err) {
+        showToast(err.message || 'Lỗi khi hủy đơn', 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadOrders);
+  </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mã Giảm Giá Căn Tin - Mâm Vàng</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <header class="customer-nav">
+    <div class="container nav-container">
+      <a href="/canteen-management/frontend/customer/home.html" class="flex items-center gap-2" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">
+        <span style="font-size: 1.7rem;">🍜</span> Mâm Vàng
+      </a>
+      <a href="/canteen-management/frontend/customer/home.html" class="btn btn-secondary btn-sm">🍽️ Trang Chủ</a>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <div style="margin-bottom: 2rem;">
+      <h1 style="font-size: 1.75rem; font-weight: 800;">Mã Giảm Giá & Ưu Đãi Căn Tin</h1>
+      <p style="color: var(--text-muted); margin-top: 0.25rem;">Sao chép mã để nhận ưu đãi hấp dẫn khi đặt món tại giỏ hàng</p>
+    </div>
+
+    <div id="vouchers-grid" class="grid grid-cols-3 gap-6">
+      <!-- Loaded dynamically -->
+    </div>
+  </main>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    async function loadVouchers() {
+      AuthGuard.checkAccess();
+
+      try {
+        const res = await API.get('/vouchers/list.php');
+        if (res.success && res.data) {
+          renderVouchers(res.data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderVouchers(vouchers) {
+      const grid = document.getElementById('vouchers-grid');
+      grid.innerHTML = '';
+
+      if (vouchers.length === 0) {
+        grid.innerHTML = '<div style="grid-column: span 3; text-align: center; padding: 3rem; color: var(--text-muted);">Hiện tại chưa có mã giảm giá nào đang áp dụng.</div>';
+        return;
+      }
+
+      vouchers.forEach(v => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.borderLeft = '6px solid var(--primary)';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+
+        const discountText = v.discount_type === 'PERCENTAGE' ? `Giảm ${v.discount_value}%` : `Giảm ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v.discount_value)}`;
+        const minOrder = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v.min_order_amount);
+
+        card.innerHTML = `
+          <div class="flex justify-between items-center" style="margin-bottom: 0.75rem;">
+            <span class="badge badge-ready">${discountText}</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">HSD: ${v.end_date}</span>
+          </div>
+
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 0.35rem;">
+            ${v.code}
+          </h3>
+
+          <p style="font-size: 0.875rem; color: var(--text-muted); flex-grow: 1; margin-bottom: 1.25rem;">
+            ${v.description || 'Ưu đãi ăn uống tại căn tin.'}
+          </p>
+
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Đơn tối thiểu: <strong>${minOrder}</strong>
+          </div>
+
+          <button class="btn btn-secondary btn-block btn-sm" onclick="copyVoucher('${v.code}')">
+            📋 Sao Chép Mã
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function copyVoucher(code) {
+      navigator.clipboard.writeText(code);
+      showToast(`Đã sao chép mã "${code}"! Hãy dán vào ô voucher trong giỏ hàng.`, 'success');
+    }
+
+    document.addEventListener('DOMContentLoaded', loadVouchers);
+  </script>
+</body>
+</html>

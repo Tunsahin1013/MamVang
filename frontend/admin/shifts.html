@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ca Làm Việc - Canteen Admin</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👑</span>
+        <span>Canteen Admin</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/admin/dashboard.html" class="sidebar-link">📊 Dashboard</a></li>
+        <li><a href="/canteen-management/frontend/admin/orders.html" class="sidebar-link">📋 Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/products.html" class="sidebar-link">🍲 Món Ăn</a></li>
+        <li><a href="/canteen-management/frontend/admin/categories.html" class="sidebar-link">🏷️ Danh Mục</a></li>
+        <li><a href="/canteen-management/frontend/admin/inventory.html" class="sidebar-link">📦 Kho Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/suppliers.html" class="sidebar-link">🚚 Nhà Cung Cấp</a></li>
+        <li><a href="/canteen-management/frontend/admin/customers.html" class="sidebar-link">👥 Sinh Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/employees.html" class="sidebar-link">👨‍🍳 Nhân Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/attendance.html" class="sidebar-link">⏱️ Chấm Công</a></li>
+        <li><a href="/canteen-management/frontend/admin/shifts.html" class="sidebar-link active">📅 Ca Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/admin/vouchers.html" class="sidebar-link">🎁 Mã Voucher</a></li>
+        <li><a href="/canteen-management/frontend/admin/reviews.html" class="sidebar-link">⭐ Đánh Giá</a></li>
+        <li><a href="/canteen-management/frontend/admin/users.html" class="sidebar-link">🔐 Người Dùng</a></li>
+        <li><a href="/canteen-management/frontend/admin/reports.html" class="sidebar-link">📈 Báo Cáo Doanh Thu</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Quản Lý & Phân Ca Làm Việc</h2>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-primary btn-sm" onclick="openAssignModal()">+ Phân Công Ca Mới</button>
+          <button class="btn btn-secondary btn-sm" onclick="openAddShiftModal()">+ Thêm Khung Giờ Ca</button>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem;">Khung Giờ Ca Hiện Tại</h3>
+        <div id="shifts-grid" class="grid grid-cols-3 gap-4" style="margin-bottom: 2rem;"></div>
+
+        <div class="card" style="padding: 1.5rem;">
+          <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem;">Lịch Phân Ca Của Nhân Viên</h3>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ngày Làm</th>
+                  <th>Ca Làm</th>
+                  <th>Khung Giờ</th>
+                  <th>Nhân Viên</th>
+                  <th>Bộ Phận</th>
+                  <th>Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody id="assignments-tbody">
+                <tr><td colspan="6" style="text-align: center; padding: 2rem;">Đang tải lịch phân ca...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assign Modal -->
+  <div id="assign-modal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="font-size: 1.25rem; font-weight: 800;">Phân Ca Cho Nhân Viên</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModals()">✕</button>
+      </div>
+      <form id="assign-form">
+        <div class="form-group">
+          <label class="form-label">Chọn Nhân Viên</label>
+          <select id="assign-emp-id" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Chọn Ca Làm</label>
+          <select id="assign-shift-id" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ngày Làm Việc</label>
+          <input type="date" id="assign-date" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Xác Nhận Phân Ca</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let shiftList = [];
+
+    async function loadShiftsData() {
+      AuthGuard.checkAccess(['ADMIN']);
+
+      try {
+        const [shiftRes, empRes] = await Promise.all([
+          API.get('/shifts/list.php'),
+          API.get('/employees/list.php')
+        ]);
+
+        if (shiftRes.success && shiftRes.data) {
+          shiftList = shiftRes.data.shifts || [];
+          renderShifts(shiftList);
+          renderAssignments(shiftRes.data.assignments || []);
+          populateShiftSelect(shiftList);
+        }
+
+        if (empRes.success && empRes.data) {
+          populateEmpSelect(empRes.data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderShifts(shifts) {
+      const grid = document.getElementById('shifts-grid');
+      grid.innerHTML = '';
+      shifts.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.borderTop = '5px solid var(--primary)';
+        card.innerHTML = `
+          <h4 style="font-size: 1.1rem; font-weight: 800;">${s.name}</h4>
+          <div style="font-size: 1.25rem; font-weight: 900; color: var(--primary); margin: 0.35rem 0;">
+            ${s.start_time.substring(0,5)} - ${s.end_time.substring(0,5)}
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">${s.description || ''}</p>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderAssignments(items) {
+      const tbody = document.getElementById('assignments-tbody');
+      tbody.innerHTML = '';
+      if (items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">Chưa có phân ca nào.</td></tr>';
+        return;
+      }
+      items.forEach(a => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${new Date(a.shift_date).toLocaleDateString('vi-VN')}</strong></td>
+          <td>${a.shift_name}</td>
+          <td>${a.start_time.substring(0,5)} - ${a.end_time.substring(0,5)}</td>
+          <td><strong>${a.employee_name}</strong></td>
+          <td>${a.department}</td>
+          <td><span class="badge badge-completed">${a.status}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function populateShiftSelect(shifts) {
+      const sel = document.getElementById('assign-shift-id');
+      sel.innerHTML = '';
+      shifts.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = `${s.name} (${s.start_time.substring(0,5)} - ${s.end_time.substring(0,5)})`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function populateEmpSelect(emps) {
+      const sel = document.getElementById('assign-emp-id');
+      sel.innerHTML = '';
+      emps.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.employee_id;
+        opt.textContent = `${e.name} (${e.department})`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function openAssignModal() {
+      document.getElementById('assign-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('assign-modal').classList.add('active');
+    }
+    function closeModals() {
+      document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active'));
+    }
+
+    document.getElementById('assign-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        employee_id: parseInt(document.getElementById('assign-emp-id').value),
+        shift_id: parseInt(document.getElementById('assign-shift-id').value),
+        shift_date: document.getElementById('assign-date').value
+      };
+
+      try {
+        const res = await API.post('/shifts/assign.php', payload);
+        if (res.success) {
+          showToast('Phân công ca thành công!', 'success');
+          closeModals();
+          loadShiftsData();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadShiftsData);
+  </script>
+</body>
+</html>

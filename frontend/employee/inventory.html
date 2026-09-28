@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kho Hàng Căn Tin - Mâm Vàng POS</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👨‍🍳</span>
+        <span>Canteen POS</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/employee/dashboard.html" class="sidebar-link">📊 Tổng Quan</a></li>
+        <li><a href="/canteen-management/frontend/employee/orders.html" class="sidebar-link">📋 Quản Lý Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/employee/products.html" class="sidebar-link">🍲 Món Ăn & Tồn Kho</a></li>
+        <li><a href="/canteen-management/frontend/employee/inventory.html" class="sidebar-link active">📦 Nhập / Xuất Kho</a></li>
+        <li><a href="/canteen-management/frontend/employee/attendance.html" class="sidebar-link">⏱️ Chấm Công Ca Làm</a></li>
+        <li><a href="/canteen-management/frontend/employee/shifts.html" class="sidebar-link">📅 Lịch Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/employee/profile.html" class="sidebar-link">👤 Hồ Sơ Cá Nhân</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Kiểm Soát Nhập / Xuất & Tồn Kho Thực Phẩm</h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="btn btn-primary btn-sm" onclick="openImportModal()">+ Nhập Kho Hàng</button>
+          <button class="btn btn-secondary btn-sm" onclick="openExportModal()">- Xuất Hủy / Hao Hụt</button>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <!-- Stock Summary Cards -->
+        <div class="grid grid-cols-3 gap-4" style="margin-bottom: 2rem;">
+          <div class="card" style="padding: 1.25rem;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">TỔNG MÓN TRONG KHO</span>
+            <div id="sum-items" style="font-size: 2rem; font-weight: 800; margin: 0.4rem 0;">0</div>
+          </div>
+          <div class="card" style="padding: 1.25rem;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">SẮP HẾT HÀNG (<= 10)</span>
+            <div id="sum-low" style="font-size: 2rem; font-weight: 800; color: var(--warning); margin: 0.4rem 0;">0</div>
+          </div>
+          <div class="card" style="padding: 1.25rem;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">HẾT HÀNG (0 PHẦN)</span>
+            <div id="sum-out" style="font-size: 2rem; font-weight: 800; color: var(--danger); margin: 0.4rem 0;">0</div>
+          </div>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="card" style="padding: 1rem; margin-bottom: 2rem;">
+          <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem;">Tồn Kho Hiện Tại Theo Món</h3>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Món Ăn</th>
+                  <th>Danh Mục</th>
+                  <th>Số Lượng Tồn</th>
+                  <th>Giá Vốn</th>
+                  <th>Tổng Giá Trị Tồn</th>
+                  <th>Cảnh Báo</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-table-body">
+                <tr><td colspan="6" style="text-align: center; padding: 2rem;">Đang tải tồn kho...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Recent Inventory Log -->
+        <div class="card" style="padding: 1.5rem;">
+          <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem;">Nhật Ký Xuất / Nhập Kho Gần Đây</h3>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Thời Gian</th>
+                  <th>Món Ăn</th>
+                  <th>Loại Giao Dịch</th>
+                  <th>Số Lượng</th>
+                  <th>Tồn Cũ → Mới</th>
+                  <th>Lý Do</th>
+                  <th>Người Thực Hiện</th>
+                </tr>
+              </thead>
+              <tbody id="transactions-log-body">
+                <!-- Log items -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Modal -->
+  <div id="import-modal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="font-size: 1.25rem; font-weight: 800;">Nhập Thêm Hàng Vào Kho</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModals()">✕</button>
+      </div>
+      <form id="import-form">
+        <div class="form-group">
+          <label class="form-label">Chọn Món Ăn</label>
+          <select id="import-prod-id" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Số Lượng Nhập</label>
+          <input type="number" id="import-qty" class="form-control" min="1" required placeholder="VD: 50">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lý Do / Nguồn Hàng</label>
+          <input type="text" id="import-reason" class="form-control" placeholder="VD: Nhập thêm nguyên liệu sáng nay">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Xác Nhận Nhập Kho</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div id="export-modal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="font-size: 1.25rem; font-weight: 800;">Xuất Kho / Hủy Thực Phẩm Hết Hạn</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModals()">✕</button>
+      </div>
+      <form id="export-form">
+        <div class="form-group">
+          <label class="form-label">Chọn Món Ăn</label>
+          <select id="export-prod-id" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Số Lượng Xuất</label>
+          <input type="number" id="export-qty" class="form-control" min="1" required placeholder="VD: 5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lý Do Xuất Hủy</label>
+          <input type="text" id="export-reason" class="form-control" placeholder="VD: Món hết hạn trong ngày / hư hỏng" required>
+        </div>
+        <button type="submit" class="btn btn-danger btn-block">Xác Nhận Xuất Kho</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let inventoryItems = [];
+
+    async function loadInventory() {
+      AuthGuard.checkAccess(['EMPLOYEE', 'ADMIN']);
+
+      try {
+        const res = await API.get('/inventory/list.php');
+        if (res.success && res.data) {
+          inventoryItems = res.data.items || [];
+          document.getElementById('sum-items').textContent = res.data.summary?.total_items || 0;
+          document.getElementById('sum-low').textContent = res.data.summary?.low_stock_count || 0;
+          document.getElementById('sum-out').textContent = res.data.summary?.out_of_stock_count || 0;
+
+          renderTable(inventoryItems);
+          renderTransactions(res.data.recent_transactions || []);
+          populateSelects(inventoryItems);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderTable(items) {
+      const tbody = document.getElementById('inventory-table-body');
+      tbody.innerHTML = '';
+
+      items.forEach(it => {
+        const tr = document.createElement('tr');
+        const costFmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(it.cost_price);
+        const valFmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(it.total_inventory_value);
+
+        let badge = '<span class="badge badge-completed">Đủ hàng</span>';
+        if (it.stock_alert_level === 'OUT_OF_STOCK') badge = '<span class="badge badge-cancelled">Hết hàng</span>';
+        else if (it.stock_alert_level === 'LOW_STOCK') badge = '<span class="badge badge-pending">Sắp hết</span>';
+
+        tr.innerHTML = `
+          <td><strong>${it.name}</strong></td>
+          <td>${it.category_name}</td>
+          <td style="font-weight: 800; font-size: 1rem;">${it.stock_quantity} phần</td>
+          <td>${costFmt}</td>
+          <td style="font-weight: 700; color: var(--primary);">${valFmt}</td>
+          <td>${badge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderTransactions(txns) {
+      const tbody = document.getElementById('transactions-log-body');
+      tbody.innerHTML = '';
+
+      if (txns.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">Chưa có giao dịch kho nào.</td></tr>';
+        return;
+      }
+
+      txns.forEach(t => {
+        const tr = document.createElement('tr');
+        const isImport = t.transaction_type === 'IMPORT';
+        tr.innerHTML = `
+          <td style="font-size: 0.8rem; color: var(--text-muted);">${new Date(t.created_at).toLocaleString('vi-VN')}</td>
+          <td><strong>${t.product_name}</strong></td>
+          <td><span class="badge ${isImport ? 'badge-completed' : 'badge-cancelled'}">${t.transaction_type}</span></td>
+          <td style="font-weight: 700;">${isImport ? '+' : '-'}${t.quantity}</td>
+          <td>${t.previous_stock} → ${t.new_stock}</td>
+          <td style="font-size: 0.85rem;">${t.reason || ''}</td>
+          <td style="font-size: 0.85rem;">${t.performed_by_name || 'Nhân viên'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function populateSelects(items) {
+      const impSelect = document.getElementById('import-prod-id');
+      const expSelect = document.getElementById('export-prod-id');
+      impSelect.innerHTML = '';
+      expSelect.innerHTML = '';
+
+      items.forEach(it => {
+        const opt1 = document.createElement('option');
+        opt1.value = it.id;
+        opt1.textContent = `${it.name} (Hiện có: ${it.stock_quantity})`;
+        impSelect.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = it.id;
+        opt2.textContent = `${it.name} (Hiện có: ${it.stock_quantity})`;
+        expSelect.appendChild(opt2);
+      });
+    }
+
+    function openImportModal() {
+      document.getElementById('import-modal').classList.add('active');
+    }
+    function openExportModal() {
+      document.getElementById('export-modal').classList.add('active');
+    }
+    function closeModals() {
+      document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active'));
+    }
+
+    document.getElementById('import-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const product_id = parseInt(document.getElementById('import-prod-id').value);
+      const quantity = parseInt(document.getElementById('import-qty').value);
+      const reason = document.getElementById('import-reason').value.trim();
+
+      try {
+        const res = await API.post('/inventory/import.php', { product_id, quantity, reason });
+        if (res.success) {
+          showToast(res.message, 'success');
+          closeModals();
+          loadInventory();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    document.getElementById('export-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const product_id = parseInt(document.getElementById('export-prod-id').value);
+      const quantity = parseInt(document.getElementById('export-qty').value);
+      const reason = document.getElementById('export-reason').value.trim();
+
+      try {
+        const res = await API.post('/inventory/export.php', { product_id, quantity, reason });
+        if (res.success) {
+          showToast(res.message, 'success');
+          closeModals();
+          loadInventory();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadInventory);
+  </script>
+</body>
+</html>

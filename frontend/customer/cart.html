@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giỏ Hàng Của Bạn - Mâm Vàng</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <header class="customer-nav">
+    <div class="container nav-container">
+      <a href="/canteen-management/frontend/customer/home.html" class="flex items-center gap-2" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">
+        <span style="font-size: 1.7rem;">🍜</span> Mâm Vàng
+      </a>
+      <div class="flex items-center gap-3">
+        <a href="/canteen-management/frontend/customer/products.html" class="btn btn-secondary btn-sm">🍽️ Tiếp Tục Chọn Món</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;">Giỏ Hàng Của Bạn</h1>
+
+    <div id="cart-content-layout" class="grid grid-cols-3 gap-6">
+      <!-- Items Column (2 cols) -->
+      <div style="grid-column: span 2;">
+        <div class="card" style="padding: 1.5rem;">
+          <div class="flex justify-between items-center" style="margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);">
+            <strong id="cart-items-count">0 Món đã chọn</strong>
+            <button class="btn btn-secondary btn-sm" onclick="clearCart()">Xóa tất cả</button>
+          </div>
+
+          <div id="cart-items-list" class="flex" style="flex-direction: column; gap: 1rem;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary Column (1 col) -->
+      <div>
+        <div class="card" style="padding: 1.5rem; position: sticky; top: 90px;">
+          <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 1.25rem;">Tóm Tắt Đơn Hàng</h3>
+
+          <!-- Voucher Input -->
+          <div class="form-group">
+            <label class="form-label" for="voucher-code">Mã Giảm Giá (Voucher)</label>
+            <div class="flex gap-2">
+              <input type="text" id="voucher-code" class="form-control" placeholder="VD: CHAOBANMOI" style="text-transform: uppercase;">
+              <button class="btn btn-secondary" onclick="applyVoucher()">Áp Dụng</button>
+            </div>
+            <div id="voucher-message" style="font-size: 0.825rem; margin-top: 0.4rem;"></div>
+          </div>
+
+          <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem;">
+            <div class="flex justify-between items-center" style="margin-bottom: 0.6rem; color: var(--text-muted);">
+              <span>Tạm tính món ăn:</span>
+              <strong id="subtotal-val" style="color: var(--text-main);">0đ</strong>
+            </div>
+            <div class="flex justify-between items-center" style="margin-bottom: 0.6rem; color: var(--success);">
+              <span>Giảm giá khuyến mãi:</span>
+              <strong id="discount-val">-0đ</strong>
+            </div>
+            <div class="flex justify-between items-center" style="font-size: 1.25rem; font-weight: 900; margin-top: 1rem; padding-top: 0.75rem; border-top: 2px dashed var(--border);">
+              <span>Tổng thanh toán:</span>
+              <span id="final-total-val" style="color: var(--primary);">0đ</span>
+            </div>
+          </div>
+
+          <button id="btn-checkout" class="btn btn-primary btn-block btn-lg" style="margin-top: 1.5rem;" onclick="goToCheckout()">
+            Tiến Hành Đặt Đơn →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="cart-empty-state" class="card" style="display: none; text-align: center; padding: 4rem 1.5rem;">
+      <div style="font-size: 4rem; margin-bottom: 1rem;">🛒</div>
+      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">Giỏ hàng của bạn đang trống</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Hãy khám phá thực đơn đa dạng của căn tin và thêm những món ăn yêu thích nhé!</p>
+      <a href="/canteen-management/frontend/customer/products.html" class="btn btn-primary btn-lg">Xem Thực Đơn Căn Tin</a>
+    </div>
+  </main>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let appliedDiscount = 0;
+    let appliedVoucherCode = '';
+
+    function renderCart() {
+      const items = Cart.get();
+      const listEl = document.getElementById('cart-items-list');
+      const countEl = document.getElementById('cart-items-count');
+      const layout = document.getElementById('cart-content-layout');
+      const emptyState = document.getElementById('cart-empty-state');
+
+      if (items.length === 0) {
+        layout.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      layout.style.display = 'grid';
+      emptyState.style.display = 'none';
+      countEl.textContent = `${items.reduce((s, i) => s + i.quantity, 0)} Món đã chọn`;
+
+      listEl.innerHTML = '';
+      items.forEach(item => {
+        const itemRow = document.createElement('div');
+        itemRow.className = 'flex items-center justify-between gap-3';
+        itemRow.style.padding = '0.85rem 0';
+        itemRow.style.borderBottom = '1px solid var(--border)';
+
+        const priceFmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price);
+        const subFmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price * item.quantity);
+
+        itemRow.innerHTML = `
+          <div class="flex items-center gap-3" style="flex-grow: 1;">
+            <img src="${item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=200&q=80'}" style="width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-md);">
+            <div>
+              <strong style="font-size: 0.95rem; color: var(--text-main); display: block;">${item.name}</strong>
+              <span style="font-size: 0.85rem; color: var(--text-muted);">${priceFmt}</span>
+              ${item.notes ? `<p style="font-size: 0.8rem; color: var(--primary); font-style: italic;">Ghi chú: ${item.notes}</p>` : ''}
+            </div>
+          </div>
+
+          <!-- Quantity Controls -->
+          <div class="flex items-center" style="border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden;">
+            <button class="btn btn-secondary btn-sm" onclick="updateQty(${item.product_id}, ${item.quantity - 1})" style="padding: 0.35rem 0.65rem;">-</button>
+            <span style="padding: 0 0.75rem; font-weight: 700; font-size: 0.9rem;">${item.quantity}</span>
+            <button class="btn btn-secondary btn-sm" onclick="updateQty(${item.product_id}, ${item.quantity + 1})" style="padding: 0.35rem 0.65rem;">+</button>
+          </div>
+
+          <div style="min-width: 90px; text-align: right; font-weight: 700; color: var(--primary);">
+            ${subFmt}
+          </div>
+
+          <button class="btn btn-sm btn-secondary" onclick="Cart.remove(${item.product_id}); renderCart();" title="Xóa món">✕</button>
+        `;
+        listEl.appendChild(itemRow);
+      });
+
+      calculateTotals();
+    }
+
+    function updateQty(id, newQty) {
+      Cart.update(id, newQty);
+      renderCart();
+    }
+
+    function clearCart() {
+      if (confirm('Bạn có chắc chắn muốn xóa toàn bộ giỏ hàng?')) {
+        Cart.clear();
+        renderCart();
+      }
+    }
+
+    function calculateTotals() {
+      const subtotal = Cart.subtotal();
+      const finalTotal = Math.max(0, subtotal - appliedDiscount);
+
+      document.getElementById('subtotal-val').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(subtotal);
+      document.getElementById('discount-val').textContent = '-' + new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(appliedDiscount);
+      document.getElementById('final-total-val').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(finalTotal);
+    }
+
+    async function applyVoucher() {
+      const code = document.getElementById('voucher-code').value.trim().toUpperCase();
+      const subtotal = Cart.subtotal();
+      const msgEl = document.getElementById('voucher-message');
+
+      if (!code) {
+        msgEl.textContent = 'Vui lòng nhập mã voucher';
+        msgEl.style.color = 'var(--danger)';
+        return;
+      }
+
+      try {
+        const res = await API.post('/vouchers/validate.php', { code, subtotal });
+        if (res.success && res.data) {
+          appliedDiscount = res.data.discount_amount || 0;
+          appliedVoucherCode = code;
+          msgEl.textContent = `✓ Đã áp dụng mã "${code}", giảm ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(appliedDiscount)}`;
+          msgEl.style.color = 'var(--success)';
+          calculateTotals();
+        } else {
+          appliedDiscount = 0;
+          appliedVoucherCode = '';
+          msgEl.textContent = res.message || 'Mã không hợp lệ';
+          msgEl.style.color = 'var(--danger)';
+          calculateTotals();
+        }
+      } catch (err) {
+        appliedDiscount = 0;
+        msgEl.textContent = err.message || 'Lỗi kiểm tra voucher';
+        msgEl.style.color = 'var(--danger)';
+        calculateTotals();
+      }
+    }
+
+    function goToCheckout() {
+      if (Cart.count() === 0) {
+        showToast('Giỏ hàng trống!', 'error');
+        return;
+      }
+      // Save voucher in sessionStorage for checkout
+      sessionStorage.setItem('canteen_voucher', appliedVoucherCode);
+      sessionStorage.setItem('canteen_discount', appliedDiscount);
+      window.location.href = '/canteen-management/frontend/customer/checkout.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      AuthGuard.checkAccess();
+      renderCart();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chi Tiết Đơn Hàng - Mâm Vàng</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+  <style>
+    .timeline {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin: 2rem 0;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 18px;
+      left: 20px;
+      right: 20px;
+      height: 4px;
+      background: var(--border);
+      z-index: 1;
+    }
+    .timeline-step {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      flex: 1;
+    }
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 3px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .timeline-step.active .step-circle {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="customer-nav">
+    <div class="container nav-container">
+      <a href="/canteen-management/frontend/customer/home.html" class="flex items-center gap-2" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">
+        <span style="font-size: 1.7rem;">🍜</span> Mâm Vàng
+      </a>
+      <a href="/canteen-management/frontend/customer/orders.html" class="btn btn-secondary btn-sm">← Lịch Sử Đơn Hàng</a>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <div id="order-loading" style="text-align: center; padding: 3rem;">Đang tải chi tiết đơn hàng...</div>
+
+    <div id="order-container" style="display: none;">
+      <!-- Order Header Card -->
+      <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+        <div class="flex justify-between items-center" style="flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+          <div>
+            <h1 style="font-size: 1.75rem; font-weight: 800;" id="ord-number">Đơn Hàng #...</h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;" id="ord-time">Đặt lúc ...</p>
+          </div>
+          <div id="ord-status-badge"></div>
+        </div>
+
+        <!-- Progress Tracker -->
+        <div class="timeline" id="order-timeline">
+          <div class="timeline-step" id="step-pending">
+            <div class="step-circle">1</div>
+            <div style="font-size: 0.85rem; font-weight: 600;">Tiếp Nhận</div>
+          </div>
+          <div class="timeline-step" id="step-confirmed">
+            <div class="step-circle">2</div>
+            <div style="font-size: 0.85rem; font-weight: 600;">Xác Nhận</div>
+          </div>
+          <div class="timeline-step" id="step-preparing">
+            <div class="step-circle">3</div>
+            <div style="font-size: 0.85rem; font-weight: 600;">Đang Nấu</div>
+          </div>
+          <div class="timeline-step" id="step-ready">
+            <div class="step-circle">4</div>
+            <div style="font-size: 0.85rem; font-weight: 600;">Đã Xong</div>
+          </div>
+          <div class="timeline-step" id="step-completed">
+            <div class="step-circle">5</div>
+            <div style="font-size: 0.85rem; font-weight: 600;">Hoàn Tất</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items & Info Grid -->
+      <div class="grid grid-cols-3 gap-6">
+        <!-- Items Column -->
+        <div style="grid-column: span 2;">
+          <div class="card" style="padding: 1.5rem;">
+            <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 1.25rem;">Danh Sách Món Ăn</h3>
+            <div id="ord-items-list" class="flex" style="flex-direction: column; gap: 1rem;">
+              <!-- Items loaded here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary & Customer details -->
+        <div>
+          <div class="card" style="padding: 1.5rem;">
+            <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 1rem;">Chi Tiết Thanh Toán</h3>
+
+            <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+              <p style="margin-bottom: 0.35rem;">Địa điểm nhận: <strong id="ord-table" style="color: var(--text-main);">...</strong></p>
+              <p style="margin-bottom: 0.35rem;">Phương thức: <strong id="ord-pay-method" style="color: var(--text-main);">...</strong></p>
+              <p>Trạng thái thanh toán: <strong id="ord-pay-status" style="color: var(--text-main);">...</strong></p>
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
+              <div class="flex justify-between items-center" style="margin-bottom: 0.5rem; font-size: 0.9rem;">
+                <span>Tạm tính:</span>
+                <strong id="ord-subtotal">0đ</strong>
+              </div>
+              <div class="flex justify-between items-center" style="margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--success);">
+                <span>Giảm giá:</span>
+                <strong id="ord-discount">-0đ</strong>
+              </div>
+              <div class="flex justify-between items-center" style="font-size: 1.3rem; font-weight: 900; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 2px dashed var(--border);">
+                <span>Tổng trả:</span>
+                <span id="ord-final" style="color: var(--primary);">0đ</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    async function initOrderDetail() {
+      AuthGuard.checkAccess(['CUSTOMER', 'ADMIN', 'EMPLOYEE']);
+
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+
+      if (!id) {
+        window.location.href = '/canteen-management/frontend/customer/orders.html';
+        return;
+      }
+
+      try {
+        const res = await API.get('/orders/get.php', { id });
+        if (res.success && res.data) {
+          renderOrderDetail(res.data);
+        } else {
+          showToast(res.message || 'Không tìm thấy đơn', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderOrderDetail(ord) {
+      document.getElementById('order-loading').style.display = 'none';
+      document.getElementById('order-container').style.display = 'block';
+
+      document.getElementById('ord-number').textContent = `Đơn Hàng #${ord.order_number}`;
+      document.getElementById('ord-time').textContent = `Đặt lúc: ${new Date(ord.created_at).toLocaleString('vi-VN')}`;
+      document.getElementById('ord-table').textContent = ord.table_number || 'Mang đi';
+      document.getElementById('ord-pay-method').textContent = ord.payment_method;
+      document.getElementById('ord-pay-status').textContent = ord.payment_status;
+
+      document.getElementById('ord-subtotal').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(ord.total_amount);
+      document.getElementById('ord-discount').textContent = '-' + new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(ord.discount_amount);
+      document.getElementById('ord-final').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(ord.final_amount);
+
+      // Status badge
+      const statusMap = {
+        'PENDING': ['badge-pending', 'Chờ Tiếp Nhận'],
+        'CONFIRMED': ['badge-confirmed', 'Đã Xác Nhận'],
+        'PREPARING': ['badge-preparing', 'Đang Nấu Món'],
+        'READY': ['badge-ready', 'Món Đã Sẵn Sàng'],
+        'COMPLETED': ['badge-completed', 'Hoàn Tất Đơn'],
+        'CANCELLED': ['badge-cancelled', 'Đã Hủy Đơn']
+      };
+      const [bClass, bText] = statusMap[ord.order_status] || ['badge', ord.order_status];
+      document.getElementById('ord-status-badge').innerHTML = `<span class="badge ${bClass}" style="font-size: 1rem; padding: 0.5rem 1rem;">${bText}</span>`;
+
+      // Timeline active steps
+      const steps = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED'];
+      const currentIdx = steps.indexOf(ord.order_status);
+
+      steps.forEach((st, idx) => {
+        const stepEl = document.getElementById(`step-${st.toLowerCase()}`);
+        if (stepEl && idx <= currentIdx) {
+          stepEl.classList.add('active');
+        }
+      });
+
+      // Render items
+      const itemsList = document.getElementById('ord-items-list');
+      itemsList.innerHTML = '';
+      (ord.items || []).forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-3';
+        row.style.padding = '0.75rem 0';
+        row.style.borderBottom = '1px solid var(--border)';
+
+        const priceFmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price);
+        const subFmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.subtotal);
+
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <img src="${item.product_image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=150&q=80'}" style="width: 52px; height: 52px; object-fit: cover; border-radius: var(--radius-md);">
+            <div>
+              <strong style="display: block;">${item.product_name}</strong>
+              <span style="font-size: 0.85rem; color: var(--text-muted);">${priceFmt} × ${item.quantity}</span>
+              ${item.notes ? `<div style="font-size: 0.8rem; color: var(--primary);">Ghi chú: ${item.notes}</div>` : ''}
+            </div>
+          </div>
+          <div style="font-weight: 700; color: var(--primary);">${subFmt}</div>
+        `;
+        itemsList.appendChild(row);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', initOrderDetail);
+  </script>
+</body>
+</html>

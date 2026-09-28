@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ví Điện Tử Căn Tin - Mâm Vàng</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <header class="customer-nav">
+    <div class="container nav-container">
+      <a href="/canteen-management/frontend/customer/home.html" class="flex items-center gap-2" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">
+        <span style="font-size: 1.7rem;">🍜</span> Mâm Vàng
+      </a>
+      <div class="flex items-center gap-3">
+        <a href="/canteen-management/frontend/customer/home.html" class="btn btn-secondary btn-sm">🍽️ Trang Chủ</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;">Ví Điện Tử Căn Tin</h1>
+
+    <div class="grid grid-cols-3 gap-6">
+      <!-- Balance Card -->
+      <div class="card" style="padding: 2rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white;">
+        <span style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; opacity: 0.9;">Số Dư Hiện Tại</span>
+        <div style="font-size: 2.25rem; font-weight: 900; margin: 0.5rem 0 1.5rem 0;" id="user-balance-display">0đ</div>
+        <p style="font-size: 0.85rem; opacity: 0.85;">Dùng để thanh toán nhanh tại quầy và nhận đồ ăn không cần tiền mặt.</p>
+      </div>
+
+      <!-- Quick Topup Card (2 cols) -->
+      <div class="card" style="grid-column: span 2; padding: 2rem;">
+        <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.25rem;">Nạp Tiền Vào Ví (VietQR / Chuyển Khoản)</h3>
+        
+        <div class="flex gap-2" style="margin-bottom: 1.25rem; flex-wrap: wrap;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="setTopupAmount(50000)">+50.000đ</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="setTopupAmount(100000)">+100.000đ</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="setTopupAmount(200000)">+200.000đ</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="setTopupAmount(500000)">+500.000đ</button>
+        </div>
+
+        <form id="topup-form" class="flex gap-3 items-center">
+          <input type="number" id="topup-amount" class="form-control" placeholder="Nhập số tiền cần nạp (Tối thiểu 10.000đ)" min="10000" step="5000" required>
+          <button type="submit" id="btn-topup" class="btn btn-primary" style="min-width: 140px;">Nạp Tiền Ngay</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Transactions History -->
+    <div class="card" style="margin-top: 2rem; padding: 1.5rem;">
+      <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 1.25rem;">Lịch Sử Giao Dịch Ví</h3>
+      
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Thời Gian</th>
+              <th>Loại Giao Dịch</th>
+              <th>Số Tiền</th>
+              <th>Số Dư Sau Giao Dịch</th>
+              <th>Mô Tả & Mã Tham Chiếu</th>
+            </tr>
+          </thead>
+          <tbody id="transactions-table-body">
+            <tr><td colspan="5" style="text-align: center; padding: 2rem;">Đang tải lịch sử giao dịch...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    async function loadWallet() {
+      AuthGuard.checkAccess(['CUSTOMER', 'ADMIN', 'EMPLOYEE']);
+
+      try {
+        const res = await API.get('/wallet/balance.php');
+        if (res.success && res.data) {
+          const bal = res.data.wallet?.balance || 0;
+          document.getElementById('user-balance-display').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bal);
+
+          renderTransactions(res.data.transactions || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderTransactions(txns) {
+      const tbody = document.getElementById('transactions-table-body');
+      tbody.innerHTML = '';
+
+      if (txns.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">Chưa có giao dịch ví nào.</td></tr>`;
+        return;
+      }
+
+      txns.forEach(t => {
+        const tr = document.createElement('tr');
+        const isPlus = t.type === 'DEPOSIT' || t.type === 'REFUND';
+        const typeBadge = isPlus ? '<span class="badge badge-completed">Nạp tiền</span>' : '<span class="badge badge-cancelled">Thanh toán</span>';
+        const color = isPlus ? 'var(--success)' : 'var(--danger)';
+        const prefix = isPlus ? '+' : '-';
+        const amt = prefix + new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(t.amount);
+        const balAfter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(t.balance_after);
+
+        tr.innerHTML = `
+          <td style="font-size: 0.85rem; color: var(--text-muted);">${new Date(t.created_at).toLocaleString('vi-VN')}</td>
+          <td>${typeBadge}</td>
+          <td style="font-weight: 800; color: ${color};">${amt}</td>
+          <td>${balAfter}</td>
+          <td>${t.description || ''} <span style="font-size: 0.75rem; color: var(--text-muted);">(${t.reference_id || ''})</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function setTopupAmount(val) {
+      document.getElementById('topup-amount').value = val;
+    }
+
+    document.getElementById('topup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('topup-amount').value);
+      if (!amount || amount < 10000) {
+        showToast('Số tiền nạp tối thiểu là 10.000đ', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-topup');
+      btn.disabled = true;
+      btn.textContent = 'Đang nạp...';
+
+      try {
+        const res = await API.post('/wallet/topup.php', { amount });
+        if (res.success) {
+          showToast(res.message, 'success');
+          document.getElementById('topup-amount').value = '';
+          loadWallet();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Nạp Tiền Ngay';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadWallet);
+  </script>
+</body>
+</html>

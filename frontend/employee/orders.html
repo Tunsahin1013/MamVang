@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Đơn Hàng - Mâm Vàng POS</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👨‍🍳</span>
+        <span>Canteen POS</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/employee/dashboard.html" class="sidebar-link">📊 Tổng Quan</a></li>
+        <li><a href="/canteen-management/frontend/employee/orders.html" class="sidebar-link active">📋 Quản Lý Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/employee/products.html" class="sidebar-link">🍲 Món Ăn & Tồn Kho</a></li>
+        <li><a href="/canteen-management/frontend/employee/inventory.html" class="sidebar-link">📦 Nhập / Xuất Kho</a></li>
+        <li><a href="/canteen-management/frontend/employee/attendance.html" class="sidebar-link">⏱️ Chấm Công Ca Làm</a></li>
+        <li><a href="/canteen-management/frontend/employee/shifts.html" class="sidebar-link">📅 Lịch Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/employee/profile.html" class="sidebar-link">👤 Hồ Sơ Cá Nhân</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Điều Phối Đơn Hàng & Chế Biến</h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="btn btn-secondary btn-sm theme-toggle-btn" onclick="ThemeManager.toggle()">🌙</button>
+          <strong class="auth-user-name" style="font-size: 0.9rem;">Nhân Viên</strong>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <!-- Controls & Filters -->
+        <div class="card" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+          <div class="flex justify-between items-center gap-3" style="flex-wrap: wrap;">
+            <div style="flex-grow: 1; min-width: 240px;">
+              <input type="text" id="order-search" class="form-control" placeholder="Tìm theo mã đơn, tên khách, số bàn..." oninput="debounceOrders()">
+            </div>
+
+            <div class="flex gap-2" style="overflow-x: auto;">
+              <button class="btn btn-secondary btn-sm filter-btn active" onclick="setFilter('ALL', this)">Tất Cả</button>
+              <button class="btn btn-secondary btn-sm filter-btn" onclick="setFilter('PENDING', this)">Chờ Nhận</button>
+              <button class="btn btn-secondary btn-sm filter-btn" onclick="setFilter('PREPARING', this)">Đang Nấu</button>
+              <button class="btn btn-secondary btn-sm filter-btn" onclick="setFilter('READY', this)">Sẵn Sàng</button>
+              <button class="btn btn-secondary btn-sm filter-btn" onclick="setFilter('COMPLETED', this)">Hoàn Tất</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="card" style="padding: 1rem;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã Đơn</th>
+                  <th>Thời Gian</th>
+                  <th>Sinh Viên</th>
+                  <th>Danh Sách Món</th>
+                  <th>Bàn / Địa Điểm</th>
+                  <th>Tổng Tiền</th>
+                  <th>Trạng Thái</th>
+                  <th>Xử Lý Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody id="orders-list-body">
+                <tr><td colspan="8" style="text-align: center; padding: 2.5rem;">Đang tải danh sách đơn hàng...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let filterStatus = 'ALL';
+    let searchTimer = null;
+
+    async function loadOrders() {
+      AuthGuard.checkAccess(['EMPLOYEE', 'ADMIN']);
+
+      const search = document.getElementById('order-search').value.trim();
+
+      try {
+        const res = await API.get('/orders/list.php', {
+          status: filterStatus,
+          search: search,
+          limit: 50
+        });
+
+        if (res.success && res.data) {
+          renderOrders(res.data.items || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function debounceOrders() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(loadOrders, 300);
+    }
+
+    function setFilter(st, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterStatus = st;
+      loadOrders();
+    }
+
+    function renderOrders(orders) {
+      const tbody = document.getElementById('orders-list-body');
+      tbody.innerHTML = '';
+
+      if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">Không có đơn hàng nào.</td></tr>`;
+        return;
+      }
+
+      orders.forEach(o => {
+        const tr = document.createElement('tr');
+        const formattedAmount = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(o.final_amount);
+
+        const statusBadges = {
+          'PENDING': '<span class="badge badge-pending">Chờ xác nhận</span>',
+          'CONFIRMED': '<span class="badge badge-confirmed">Đã nhận</span>',
+          'PREPARING': '<span class="badge badge-preparing">Đang nấu</span>',
+          'READY': '<span class="badge badge-ready">Đã xong</span>',
+          'COMPLETED': '<span class="badge badge-completed">Hoàn tất</span>',
+          'CANCELLED': '<span class="badge badge-cancelled">Đã hủy</span>'
+        };
+
+        tr.innerHTML = `
+          <td><strong>${o.order_number}</strong></td>
+          <td style="font-size: 0.825rem; color: var(--text-muted);">${new Date(o.created_at).toLocaleTimeString('vi-VN')}</td>
+          <td><strong>${o.customer_name || 'Khách lẻ'}</strong></td>
+          <td style="max-width: 250px; font-size: 0.85rem;">${o.items_summary || ''}</td>
+          <td><span class="badge" style="background: var(--bg-main);">${o.table_number || 'Mang đi'}</span></td>
+          <td style="font-weight: 700; color: var(--primary);">${formattedAmount}</td>
+          <td>${statusBadges[o.order_status] || o.order_status}</td>
+          <td>
+            <select class="form-control" style="font-size: 0.85rem; padding: 0.35rem 0.6rem; width: auto;" onchange="changeStatus(${o.id}, this.value)">
+              <option value="PENDING" ${o.order_status === 'PENDING' ? 'selected' : ''}>Chờ duyệt</option>
+              <option value="CONFIRMED" ${o.order_status === 'CONFIRMED' ? 'selected' : ''}>Xác nhận</option>
+              <option value="PREPARING" ${o.order_status === 'PREPARING' ? 'selected' : ''}>Đang nấu</option>
+              <option value="READY" ${o.order_status === 'READY' ? 'selected' : ''}>Đã xong món</option>
+              <option value="COMPLETED" ${o.order_status === 'COMPLETED' ? 'selected' : ''}>Đã giao/Hoàn tất</option>
+              <option value="CANCELLED" ${o.order_status === 'CANCELLED' ? 'selected' : ''}>Hủy đơn</option>
+            </select>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function changeStatus(orderId, newStatus) {
+      try {
+        const res = await API.post('/orders/update_status.php', {
+          order_id: orderId,
+          status: newStatus
+        });
+        if (res.success) {
+          showToast(`Cập nhật đơn #${orderId} thành "${newStatus}"!`, 'success');
+          loadOrders();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadOrders);
+  </script>
+</body>
+</html>

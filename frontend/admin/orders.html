@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Đơn Hàng - Canteen Admin</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👑</span>
+        <span>Canteen Admin</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/admin/dashboard.html" class="sidebar-link">📊 Dashboard</a></li>
+        <li><a href="/canteen-management/frontend/admin/orders.html" class="sidebar-link active">📋 Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/products.html" class="sidebar-link">🍲 Món Ăn</a></li>
+        <li><a href="/canteen-management/frontend/admin/categories.html" class="sidebar-link">🏷️ Danh Mục</a></li>
+        <li><a href="/canteen-management/frontend/admin/inventory.html" class="sidebar-link">📦 Kho Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/suppliers.html" class="sidebar-link">🚚 Nhà Cung Cấp</a></li>
+        <li><a href="/canteen-management/frontend/admin/customers.html" class="sidebar-link">👥 Sinh Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/employees.html" class="sidebar-link">👨‍🍳 Nhân Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/attendance.html" class="sidebar-link">⏱️ Chấm Công</a></li>
+        <li><a href="/canteen-management/frontend/admin/shifts.html" class="sidebar-link">📅 Ca Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/admin/vouchers.html" class="sidebar-link">🎁 Mã Voucher</a></li>
+        <li><a href="/canteen-management/frontend/admin/reviews.html" class="sidebar-link">⭐ Đánh Giá</a></li>
+        <li><a href="/canteen-management/frontend/admin/users.html" class="sidebar-link">🔐 Người Dùng</a></li>
+        <li><a href="/canteen-management/frontend/admin/reports.html" class="sidebar-link">📈 Báo Cáo Doanh Thu</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Toàn Bộ Đơn Hàng Căn Tin</h2>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <div class="card" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+          <div class="flex justify-between items-center gap-3" style="flex-wrap: wrap;">
+            <input type="text" id="order-search" class="form-control" style="max-width: 320px;" placeholder="Tìm theo mã đơn, tên khách..." oninput="debounceOrders()">
+            
+            <div class="flex gap-2">
+              <select id="status-filter" class="form-control" onchange="loadOrders()">
+                <option value="ALL">Tất Cả Trạng Thái</option>
+                <option value="PENDING">Chờ duyệt (PENDING)</option>
+                <option value="CONFIRMED">Đã xác nhận (CONFIRMED)</option>
+                <option value="PREPARING">Đang nấu (PREPARING)</option>
+                <option value="READY">Sẵn sàng (READY)</option>
+                <option value="COMPLETED">Hoàn tất (COMPLETED)</option>
+                <option value="CANCELLED">Đã hủy (CANCELLED)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 1rem;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã Đơn</th>
+                  <th>Sinh Viên</th>
+                  <th>Chi Tiết Món</th>
+                  <th>Tổng Tiền</th>
+                  <th>Phương Thức</th>
+                  <th>Thanh Toán</th>
+                  <th>Trạng Thái</th>
+                  <th>Thời Gian</th>
+                  <th style="text-align: right;">Cập Nhật</th>
+                </tr>
+              </thead>
+              <tbody id="admin-orders-tbody">
+                <tr><td colspan="9" style="text-align: center; padding: 2rem;">Đang tải danh sách đơn hàng...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let searchTimer = null;
+
+    async function loadOrders() {
+      AuthGuard.checkAccess(['ADMIN']);
+
+      const search = document.getElementById('order-search').value.trim();
+      const status = document.getElementById('status-filter').value;
+
+      try {
+        const res = await API.get('/orders/list.php', { search, status, limit: 100 });
+        if (res.success && res.data) {
+          renderOrders(res.data.items || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function debounceOrders() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(loadOrders, 300);
+    }
+
+    function renderOrders(orders) {
+      const tbody = document.getElementById('admin-orders-tbody');
+      tbody.innerHTML = '';
+
+      if (orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-muted);">Không tìm thấy đơn hàng nào.</td></tr>';
+        return;
+      }
+
+      orders.forEach(o => {
+        const tr = document.createElement('tr');
+        const amt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(o.final_amount);
+
+        const statusBadges = {
+          'PENDING': '<span class="badge badge-pending">PENDING</span>',
+          'CONFIRMED': '<span class="badge badge-confirmed">CONFIRMED</span>',
+          'PREPARING': '<span class="badge badge-preparing">PREPARING</span>',
+          'READY': '<span class="badge badge-ready">READY</span>',
+          'COMPLETED': '<span class="badge badge-completed">COMPLETED</span>',
+          'CANCELLED': '<span class="badge badge-cancelled">CANCELLED</span>'
+        };
+
+        tr.innerHTML = `
+          <td><strong>${o.order_number}</strong></td>
+          <td>${o.customer_name || 'Khách'}<div style="font-size: 0.75rem; color: var(--text-muted);">${o.table_number || ''}</div></td>
+          <td style="max-width: 200px; font-size: 0.85rem;">${o.items_summary || ''}</td>
+          <td style="font-weight: 700; color: var(--primary);">${amt}</td>
+          <td>${o.payment_method}</td>
+          <td><span class="badge ${o.payment_status === 'PAID' ? 'badge-completed' : 'badge-pending'}">${o.payment_status}</span></td>
+          <td>${statusBadges[o.order_status] || o.order_status}</td>
+          <td style="font-size: 0.8rem; color: var(--text-muted);">${new Date(o.created_at).toLocaleString('vi-VN')}</td>
+          <td style="text-align: right;">
+            <select class="form-control" style="font-size: 0.8rem; padding: 0.3rem 0.5rem; width: auto;" onchange="updateStatus(${o.id}, this.value)">
+              <option value="PENDING" ${o.order_status === 'PENDING' ? 'selected' : ''}>Chờ duyệt</option>
+              <option value="CONFIRMED" ${o.order_status === 'CONFIRMED' ? 'selected' : ''}>Xác nhận</option>
+              <option value="PREPARING" ${o.order_status === 'PREPARING' ? 'selected' : ''}>Đang nấu</option>
+              <option value="READY" ${o.order_status === 'READY' ? 'selected' : ''}>Sẵn sàng</option>
+              <option value="COMPLETED" ${o.order_status === 'COMPLETED' ? 'selected' : ''}>Hoàn tất</option>
+              <option value="CANCELLED" ${o.order_status === 'CANCELLED' ? 'selected' : ''}>Hủy đơn</option>
+            </select>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function updateStatus(orderId, status) {
+      try {
+        const res = await API.post('/orders/update_status.php', { order_id: orderId, status });
+        if (res.success) {
+          showToast(`Cập nhật đơn #${orderId} thành "${status}" thành công!`, 'success');
+          loadOrders();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadOrders);
+  </script>
+</body>
+</html>

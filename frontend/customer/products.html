@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thực Đơn Căn Tin - Mâm Vàng</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <!-- Customer Header -->
+  <header class="customer-nav">
+    <div class="container nav-container">
+      <a href="/canteen-management/frontend/customer/home.html" class="flex items-center gap-2" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">
+        <span style="font-size: 1.7rem;">🍜</span> Mâm Vàng
+      </a>
+
+      <div class="flex items-center gap-3">
+        <button class="btn btn-secondary btn-sm theme-toggle-btn" onclick="ThemeManager.toggle()">🌙</button>
+        <a href="/canteen-management/frontend/customer/wallet.html" class="btn btn-secondary btn-sm">💳 <span class="auth-user-balance">0đ</span></a>
+        <a href="/canteen-management/frontend/customer/cart.html" class="btn btn-primary btn-sm" style="position: relative;">
+          🛒 Giỏ Hàng <span class="badge cart-count-badge" style="position: absolute; top: -8px; right: -8px; background: var(--danger); color: white; padding: 2px 6px; font-size: 0.7rem; border-radius: 9999px;">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <nav style="background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 0.5rem 0;">
+    <div class="container flex gap-4" style="overflow-x: auto; font-size: 0.9rem; font-weight: 600;">
+      <a href="/canteen-management/frontend/customer/home.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Trang Chủ</a>
+      <a href="/canteen-management/frontend/customer/products.html" style="color: var(--primary); padding: 0.4rem 0.6rem;">Tất Cả Món Ăn</a>
+      <a href="/canteen-management/frontend/customer/orders.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Lịch Sử Đơn Hàng</a>
+      <a href="/canteen-management/frontend/customer/vouchers.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Mã Giảm Giá</a>
+      <a href="/canteen-management/frontend/customer/wallet.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Ví Tiền Căn Tin</a>
+      <a href="/canteen-management/frontend/customer/chat.html" style="color: var(--text-muted); padding: 0.4rem 0.6rem;">Hỗ Trợ / Chat</a>
+    </div>
+  </nav>
+
+  <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <!-- Filter Toolbar -->
+    <div class="card" style="margin-bottom: 2rem; padding: 1.25rem;">
+      <div class="flex justify-between items-center gap-4" style="flex-wrap: wrap;">
+        <!-- Search -->
+        <div style="flex-grow: 1; min-width: 240px;">
+          <input type="text" id="search-input" class="form-control" placeholder="Tìm theo tên món ăn, mô tả..." oninput="debounceSearch()">
+        </div>
+
+        <!-- Category Dropdown -->
+        <div style="min-width: 180px;">
+          <select id="category-select" class="form-control" onchange="loadProducts()">
+            <option value="0">Tất Cả Danh Mục</option>
+          </select>
+        </div>
+
+        <!-- Sort Dropdown -->
+        <div style="min-width: 180px;">
+          <select id="sort-select" class="form-control" onchange="loadProducts()">
+            <option value="new">Mới nhất</option>
+            <option value="price_asc">Giá tăng dần</option>
+            <option value="price_desc">Giá giảm dần</option>
+            <option value="bestseller">Bán chạy nhất</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Results Grid -->
+    <div id="products-grid" class="grid grid-cols-4 gap-4">
+      <!-- Injected by JS -->
+    </div>
+
+    <div id="empty-state" style="display: none; text-align: center; padding: 4rem 1rem;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700;">Không tìm thấy món ăn phù hợp</h3>
+      <p style="color: var(--text-muted); margin-top: 0.35rem;">Vui lòng thử tìm với từ khóa khác hoặc bỏ chọn bộ lọc.</p>
+    </div>
+  </main>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let productsList = [];
+    let searchTimeout = null;
+
+    async function initPage() {
+      AuthGuard.checkAccess();
+
+      // Check url params
+      const params = new URLSearchParams(window.location.search);
+      const initialSearch = params.get('search');
+      if (initialSearch) {
+        document.getElementById('search-input').value = initialSearch;
+      }
+
+      // Load categories
+      try {
+        const catRes = await API.get('/categories/list.php');
+        if (catRes.success) {
+          const select = document.getElementById('category-select');
+          catRes.data.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            select.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      loadProducts();
+    }
+
+    function debounceSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(loadProducts, 350);
+    }
+
+    async function loadProducts() {
+      const search = document.getElementById('search-input').value.trim();
+      const category_id = document.getElementById('category-select').value;
+      const sort = document.getElementById('sort-select').value;
+
+      try {
+        const res = await API.get('/products/list.php', {
+          search,
+          category_id: category_id > 0 ? category_id : '',
+          sort,
+          limit: 40
+        });
+
+        if (res.success) {
+          productsList = res.data.items || [];
+          renderProducts(productsList);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderProducts(items) {
+      const grid = document.getElementById('products-grid');
+      const empty = document.getElementById('empty-state');
+      grid.innerHTML = '';
+
+      if (items.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      items.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        const formattedPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price);
+
+        card.innerHTML = `
+          <div class="product-image-wrap">
+            <img src="${p.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80'}" class="product-image">
+            <span class="badge" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.65); color: white;">
+              ⭐ ${p.avg_rating || 5.0} (${p.review_count || 0})
+            </span>
+            ${p.stock_quantity <= 0 ? '<span class="badge badge-cancelled" style="position: absolute; top: 10px; right: 10px;">Hết hàng</span>' : ''}
+          </div>
+          <div class="product-info">
+            <a href="/canteen-management/frontend/customer/product-detail.html?id=${p.id}" class="product-title">${p.name}</a>
+            <p class="product-desc">${p.description || ''}</p>
+            <div class="flex justify-between items-center" style="margin-top: auto; padding-top: 0.75rem;">
+              <span class="product-price">${formattedPrice}</span>
+              <button class="btn btn-sm btn-primary" ${p.stock_quantity <= 0 ? 'disabled' : ''} onclick="quickAddToCart(${p.id})">
+                + Thêm
+              </button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function quickAddToCart(id) {
+      const prod = productsList.find(p => p.id === id);
+      if (prod) Cart.add(prod, 1);
+    }
+
+    document.addEventListener('DOMContentLoaded', initPage);
+  </script>
+</body>
+</html>

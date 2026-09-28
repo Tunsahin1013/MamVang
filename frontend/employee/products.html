@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Món Ăn & Trạng Thái - Mâm Vàng POS</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👨‍🍳</span>
+        <span>Canteen POS</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/employee/dashboard.html" class="sidebar-link">📊 Tổng Quan</a></li>
+        <li><a href="/canteen-management/frontend/employee/orders.html" class="sidebar-link">📋 Quản Lý Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/employee/products.html" class="sidebar-link active">🍲 Món Ăn & Tồn Kho</a></li>
+        <li><a href="/canteen-management/frontend/employee/inventory.html" class="sidebar-link">📦 Nhập / Xuất Kho</a></li>
+        <li><a href="/canteen-management/frontend/employee/attendance.html" class="sidebar-link">⏱️ Chấm Công Ca Làm</a></li>
+        <li><a href="/canteen-management/frontend/employee/shifts.html" class="sidebar-link">📅 Lịch Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/employee/profile.html" class="sidebar-link">👤 Hồ Sơ Cá Nhân</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Trạng Thái Món Ăn & Số Lượng Phục Vụ</h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="btn btn-secondary btn-sm theme-toggle-btn" onclick="ThemeManager.toggle()">🌙</button>
+          <strong class="auth-user-name" style="font-size: 0.9rem;">Nhân Viên</strong>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <div class="card" style="padding: 1rem;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Món Ăn</th>
+                  <th>Danh Mục</th>
+                  <th>Giá Bán</th>
+                  <th>Số Lượng Còn</th>
+                  <th>Trạng Thái</th>
+                  <th style="text-align: right;">Bật / Tắt Bán</th>
+                </tr>
+              </thead>
+              <tbody id="emp-products-body">
+                <tr><td colspan="6" style="text-align: center; padding: 2.5rem;">Đang tải danh sách món ăn...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    async function loadProducts() {
+      AuthGuard.checkAccess(['EMPLOYEE', 'ADMIN']);
+
+      try {
+        const res = await API.get('/products/list.php', { status: 'ALL', limit: 100 });
+        if (res.success && res.data) {
+          renderProducts(res.data.items || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderProducts(items) {
+      const tbody = document.getElementById('emp-products-body');
+      tbody.innerHTML = '';
+
+      items.forEach(p => {
+        const tr = document.createElement('tr');
+        const formattedPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price);
+        const isAvail = p.status === 'AVAILABLE';
+
+        tr.innerHTML = `
+          <td>
+            <div class="flex items-center gap-3">
+              <img src="${p.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=150&q=80'}" style="width: 44px; height: 44px; border-radius: var(--radius-sm); object-fit: cover;">
+              <strong>${p.name}</strong>
+            </div>
+          </td>
+          <td>${p.category_name}</td>
+          <td style="font-weight: 700; color: var(--primary);">${formattedPrice}</td>
+          <td>
+            <span style="font-weight: 800; ${p.stock_quantity <= 10 ? 'color: var(--danger);' : ''}">${p.stock_quantity}</span> phần
+          </td>
+          <td>
+            <span class="badge ${isAvail ? 'badge-completed' : 'badge-cancelled'}">
+              ${isAvail ? 'Đang phục vụ' : 'Tạm hết món'}
+            </span>
+          </td>
+          <td style="text-align: right;">
+            <button class="btn btn-sm ${isAvail ? 'btn-secondary' : 'btn-primary'}" onclick="toggleStatus(${p.id}, '${isAvail ? 'OUT_OF_STOCK' : 'AVAILABLE'}')">
+              ${isAvail ? 'Tắt Bán (Hết)' : 'Mở Bán Lại'}
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function toggleStatus(productId, newStatus) {
+      try {
+        const res = await API.post('/products/update.php', {
+          id: productId,
+          status: newStatus
+        });
+        if (res.success) {
+          showToast('Đã cập nhật trạng thái món ăn!', 'success');
+          loadProducts();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadProducts);
+  </script>
+</body>
+</html>

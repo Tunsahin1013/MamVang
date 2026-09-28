@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng Nhập - Canteen Management System</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(249, 115, 22, 0.05), rgba(14, 165, 233, 0.05)); padding: 1.5rem;">
+
+  <div class="card" style="width: 100%; max-width: 440px; border-radius: 20px; box-shadow: var(--shadow-lg);">
+    <!-- Logo & Title -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div style="width: 58px; height: 58px; background: var(--primary); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);">
+        🍜
+      </div>
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">Đăng Nhập Căn Tin</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.35rem;">Hệ thống Mâm Vàng & Đặt Món Trực Tuyến</p>
+    </div>
+
+    <!-- Quick Demo Logins for Examiner -->
+    <div style="background: var(--bg-main); border: 1px dashed var(--border); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 1.5rem;">
+      <p style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; text-align: center;">⚡ Chọn nhanh tài khoản kiểm thử:</p>
+      <div class="flex gap-2">
+        <button type="button" class="btn btn-sm btn-secondary" style="flex: 1; font-size: 0.78rem;" onclick="fillAccount('admin@canteen.com', 'Admin@123')">👑 Admin</button>
+        <button type="button" class="btn btn-sm btn-secondary" style="flex: 1; font-size: 0.78rem;" onclick="fillAccount('employee@canteen.com', 'Employee@123')">👨‍🍳 Nhân Viên</button>
+        <button type="button" class="btn btn-sm btn-secondary" style="flex: 1; font-size: 0.78rem;" onclick="fillAccount('customer@canteen.com', 'Customer@123')">👤 Sinh Viên</button>
+      </div>
+    </div>
+
+    <!-- Login Form -->
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label" for="email">Địa chỉ Email</label>
+        <input type="email" id="email" class="form-control" placeholder="name@canteen.com" required>
+      </div>
+
+      <div class="form-group">
+        <div class="flex justify-between items-center" style="margin-bottom: 0.4rem;">
+          <label class="form-label" for="password" style="margin-bottom: 0;">Mật khẩu</label>
+          <a href="/canteen-management/frontend/forgot-password.html" style="font-size: 0.825rem; color: var(--primary); font-weight: 600;">Quên mật khẩu?</a>
+        </div>
+        <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" id="btn-submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1rem;">
+        Đăng Nhập Ngay
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+      Chưa có tài khoản Sinh Viên? 
+      <a href="/canteen-management/frontend/register.html" style="color: var(--primary); font-weight: 700;">Đăng ký ngay</a>
+    </div>
+
+    <div style="text-align: center; margin-top: 1rem;">
+      <a href="/canteen-management/frontend/index.html" style="font-size: 0.825rem; color: var(--text-muted);">← Quay về trang giới thiệu</a>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    function fillAccount(email, pass) {
+      document.getElementById('email').value = email;
+      document.getElementById('password').value = pass;
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+      btn.textContent = 'Đang xác thực...';
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await API.post('/auth/login.php', { email, password });
+        if (res.success) {
+          API.setToken(res.data.token);
+          API.setUser(res.data.user);
+          showToast('Đăng nhập thành công!', 'success');
+          
+          setTimeout(() => {
+            window.location.href = res.data.redirect_url;
+          }, 400);
+        } else {
+          showToast(res.message || 'Đăng nhập thất bại', 'error');
+        }
+      } catch (err) {
+        showToast(err.message || 'Lỗi kết nối máy chủ', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Đăng Nhập Ngay';
+      }
+    });
+  </script>
+</body>
+</html>

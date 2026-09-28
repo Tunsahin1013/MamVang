@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mã Voucher - Canteen Admin</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👑</span>
+        <span>Canteen Admin</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/admin/dashboard.html" class="sidebar-link">📊 Dashboard</a></li>
+        <li><a href="/canteen-management/frontend/admin/orders.html" class="sidebar-link">📋 Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/products.html" class="sidebar-link">🍲 Món Ăn</a></li>
+        <li><a href="/canteen-management/frontend/admin/categories.html" class="sidebar-link">🏷️ Danh Mục</a></li>
+        <li><a href="/canteen-management/frontend/admin/inventory.html" class="sidebar-link">📦 Kho Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/suppliers.html" class="sidebar-link">🚚 Nhà Cung Cấp</a></li>
+        <li><a href="/canteen-management/frontend/admin/customers.html" class="sidebar-link">👥 Sinh Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/employees.html" class="sidebar-link">👨‍🍳 Nhân Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/attendance.html" class="sidebar-link">⏱️ Chấm Công</a></li>
+        <li><a href="/canteen-management/frontend/admin/shifts.html" class="sidebar-link">📅 Ca Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/admin/vouchers.html" class="sidebar-link active">🎁 Mã Voucher</a></li>
+        <li><a href="/canteen-management/frontend/admin/reviews.html" class="sidebar-link">⭐ Đánh Giá</a></li>
+        <li><a href="/canteen-management/frontend/admin/users.html" class="sidebar-link">🔐 Người Dùng</a></li>
+        <li><a href="/canteen-management/frontend/admin/reports.html" class="sidebar-link">📈 Báo Cáo Doanh Thu</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Quản Lý Mã Giảm Giá & Khuyến Mãi</h2>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openAddVoucherModal()">+ Tạo Mã Voucher Mới</button>
+      </header>
+
+      <div class="content-body">
+        <div class="card" style="padding: 1rem;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã Voucher</th>
+                  <th>Mô Tả</th>
+                  <th>Mức Giảm</th>
+                  <th>Đơn Tối Thiểu</th>
+                  <th>Lượt Dùng</th>
+                  <th>Thời Hạn Áp Dụng</th>
+                  <th>Trạng Thái</th>
+                  <th style="text-align: right;">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="vouchers-tbody">
+                <tr><td colspan="8" style="text-align: center; padding: 2rem;">Đang tải danh sách voucher...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voucher Modal -->
+  <div id="voucher-modal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="voucher-modal-title" style="font-size: 1.25rem; font-weight: 800;">Tạo Mã Voucher</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeVoucherModal()">✕</button>
+      </div>
+      <form id="voucher-form">
+        <input type="hidden" id="vch-id">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label">Mã Code (Chữ in hoa)</label>
+            <input type="text" id="vch-code" class="form-control" required placeholder="VD: CHAOBANMOI" style="text-transform: uppercase;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Loại Giảm Giá</label>
+            <select id="vch-type" class="form-control">
+              <option value="PERCENTAGE">PERCENTAGE (Phần trăm %)</option>
+              <option value="FIXED">FIXED (Số tiền cố định)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label">Giá Trị Giảm</label>
+            <input type="number" id="vch-val" class="form-control" required placeholder="VD: 20 hoặc 30000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Đơn Hàng Tối Thiểu</label>
+            <input type="number" id="vch-min" class="form-control" placeholder="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mô Tả Khuyến Mãi</label>
+          <input type="text" id="vch-desc" class="form-control" placeholder="VD: Giảm 20% cho Sinh Viên mới">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label">Ngày Bắt Đầu</label>
+            <input type="date" id="vch-start" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ngày Kết Thúc</label>
+            <input type="date" id="vch-end" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Số Lượng Lượt Dùng Tối Đa</label>
+          <input type="number" id="vch-limit" class="form-control" value="100">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Lưu Mã Voucher</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let voucherList = [];
+
+    async function loadVouchers() {
+      AuthGuard.checkAccess(['ADMIN']);
+
+      try {
+        const res = await API.get('/vouchers/list.php');
+        if (res.success && res.data) {
+          voucherList = res.data;
+          renderVouchers(voucherList);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderVouchers(items) {
+      const tbody = document.getElementById('vouchers-tbody');
+      tbody.innerHTML = '';
+
+      items.forEach(v => {
+        const tr = document.createElement('tr');
+        const discount = v.discount_type === 'PERCENTAGE' ? `${v.discount_value}%` : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v.discount_value);
+        const minOrd = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v.min_order_amount);
+
+        tr.innerHTML = `
+          <td><strong style="color: var(--primary); font-size: 1rem;">${v.code}</strong></td>
+          <td style="font-size: 0.85rem;">${v.description || ''}</td>
+          <td><span class="badge badge-ready">${discount}</span></td>
+          <td>${minOrd}</td>
+          <td><strong>${v.times_used}</strong> / ${v.usage_limit}</td>
+          <td style="font-size: 0.8rem; color: var(--text-muted);">${v.start_date} → ${v.end_date}</td>
+          <td><span class="badge ${v.status === 'ACTIVE' ? 'badge-completed' : 'badge-cancelled'}">${v.status}</span></td>
+          <td style="text-align: right;">
+            <button class="btn btn-sm btn-danger" onclick="deleteVoucher(${v.id})">Xóa</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAddVoucherModal() {
+      document.getElementById('voucher-modal-title').textContent = 'Tạo Mã Voucher Mới';
+      document.getElementById('vch-id').value = '';
+      document.getElementById('vch-code').value = '';
+      document.getElementById('vch-desc').value = '';
+      document.getElementById('vch-val').value = '';
+      document.getElementById('vch-min').value = '0';
+      document.getElementById('vch-start').value = new Date().toISOString().split('T')[0];
+      const nextMonth = new Date();
+      nextMonth.setDate(nextMonth.getDate() + 30);
+      document.getElementById('vch-end').value = nextMonth.toISOString().split('T')[0];
+      document.getElementById('voucher-modal').classList.add('active');
+    }
+
+    function closeVoucherModal() {
+      document.getElementById('voucher-modal').classList.remove('active');
+    }
+
+    document.getElementById('voucher-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        code: document.getElementById('vch-code').value.trim().toUpperCase(),
+        description: document.getElementById('vch-desc').value.trim(),
+        discount_type: document.getElementById('vch-type').value,
+        discount_value: parseFloat(document.getElementById('vch-val').value),
+        min_order_amount: parseFloat(document.getElementById('vch-min').value || '0'),
+        usage_limit: parseInt(document.getElementById('vch-limit').value || '100'),
+        start_date: document.getElementById('vch-start').value,
+        end_date: document.getElementById('vch-end').value
+      };
+
+      try {
+        const res = await API.post('/vouchers/create.php', payload);
+        if (res.success) {
+          showToast('Tạo mã voucher thành công!', 'success');
+          closeVoucherModal();
+          loadVouchers();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    async function deleteVoucher(id) {
+      if (!confirm('Bạn có chắc muốn xóa mã voucher này?')) return;
+      try {
+        const res = await API.post('/vouchers/delete.php', { id });
+        showToast(res.message, res.success ? 'success' : 'error');
+        loadVouchers();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadVouchers);
+  </script>
+</body>
+</html>

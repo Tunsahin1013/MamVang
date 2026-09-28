@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Món Ăn - Canteen Admin</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👑</span>
+        <span>Canteen Admin</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/admin/dashboard.html" class="sidebar-link">📊 Dashboard</a></li>
+        <li><a href="/canteen-management/frontend/admin/orders.html" class="sidebar-link">📋 Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/products.html" class="sidebar-link active">🍲 Món Ăn</a></li>
+        <li><a href="/canteen-management/frontend/admin/categories.html" class="sidebar-link">🏷️ Danh Mục</a></li>
+        <li><a href="/canteen-management/frontend/admin/inventory.html" class="sidebar-link">📦 Kho Hàng</a></li>
+        <li><a href="/canteen-management/frontend/admin/suppliers.html" class="sidebar-link">🚚 Nhà Cung Cấp</a></li>
+        <li><a href="/canteen-management/frontend/admin/customers.html" class="sidebar-link">👥 Sinh Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/employees.html" class="sidebar-link">👨‍🍳 Nhân Viên</a></li>
+        <li><a href="/canteen-management/frontend/admin/attendance.html" class="sidebar-link">⏱️ Chấm Công</a></li>
+        <li><a href="/canteen-management/frontend/admin/shifts.html" class="sidebar-link">📅 Ca Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/admin/vouchers.html" class="sidebar-link">🎁 Mã Voucher</a></li>
+        <li><a href="/canteen-management/frontend/admin/reviews.html" class="sidebar-link">⭐ Đánh Giá</a></li>
+        <li><a href="/canteen-management/frontend/admin/users.html" class="sidebar-link">🔐 Người Dùng</a></li>
+        <li><a href="/canteen-management/frontend/admin/reports.html" class="sidebar-link">📈 Báo Cáo Doanh Thu</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Quản Lý Thực Đơn & Món Ăn</h2>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Thêm Món Ăn Mới</button>
+      </header>
+
+      <div class="content-body">
+        <div class="card" style="padding: 1rem;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Món Ăn</th>
+                  <th>Danh Mục</th>
+                  <th>Giá Bán</th>
+                  <th>Giá Vốn</th>
+                  <th>Tồn Kho</th>
+                  <th>Nổi Bật</th>
+                  <th>Trạng Thái</th>
+                  <th style="text-align: right;">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="products-tbody">
+                <tr><td colspan="8" style="text-align: center; padding: 2.5rem;">Đang tải danh sách món ăn...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Modal -->
+  <div id="product-modal" class="modal-backdrop">
+    <div class="modal" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 id="modal-title" style="font-size: 1.25rem; font-weight: 800;">Thêm Món Ăn</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
+      </div>
+      <form id="product-form">
+        <input type="hidden" id="prod-id">
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label">Tên Món Ăn</label>
+            <input type="text" id="prod-name" class="form-control" required placeholder="VD: Cơm Tấm Sườn Nướng">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Danh Mục</label>
+            <select id="prod-category" class="form-control" required></select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="form-group">
+            <label class="form-label">Giá Bán (VND)</label>
+            <input type="number" id="prod-price" class="form-control" min="1000" step="1000" required placeholder="45000">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Giá Vốn (VND)</label>
+            <input type="number" id="prod-cost" class="form-control" min="0" step="1000" placeholder="25000">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tồn Kho Ban Đầu</label>
+            <input type="number" id="prod-stock" class="form-control" min="0" placeholder="50">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mô Tả Món Ăn</label>
+          <textarea id="prod-desc" class="form-control" rows="2" placeholder="Hương vị, thành phần..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">URL Hình Ảnh</label>
+          <input type="url" id="prod-image" class="form-control" placeholder="https://images.unsplash.com/...">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4" style="margin-bottom: 1.5rem;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Trạng Thái Phục Vụ</label>
+            <select id="prod-status" class="form-control">
+              <option value="AVAILABLE">AVAILABLE (Đang mở bán)</option>
+              <option value="OUT_OF_STOCK">OUT_OF_STOCK (Tạm hết)</option>
+              <option value="DISCONTINUED">DISCONTINUED (Ngừng bán)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2" style="margin-top: 1.8rem;">
+            <input type="checkbox" id="prod-featured" style="width: 18px; height: 18px;">
+            <label for="prod-featured" style="font-weight: 600; font-size: 0.9rem;">Đặt làm món nổi bật ⭐</label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Lưu Món Ăn</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    let productsList = [];
+    let categoriesList = [];
+
+    async function loadData() {
+      AuthGuard.checkAccess(['ADMIN']);
+
+      try {
+        const [prodRes, catRes] = await Promise.all([
+          API.get('/products/list.php', { status: 'ALL', limit: 100 }),
+          API.get('/categories/list.php', { status: 'ALL' })
+        ]);
+
+        if (catRes.success) {
+          categoriesList = catRes.data || [];
+          populateCategorySelect();
+        }
+
+        if (prodRes.success) {
+          productsList = prodRes.data.items || [];
+          renderProducts(productsList);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function populateCategorySelect() {
+      const select = document.getElementById('prod-category');
+      select.innerHTML = '';
+      categoriesList.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name;
+        select.appendChild(opt);
+      });
+    }
+
+    function renderProducts(items) {
+      const tbody = document.getElementById('products-tbody');
+      tbody.innerHTML = '';
+
+      items.forEach(p => {
+        const tr = document.createElement('tr');
+        const priceFmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price);
+        const costFmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.cost_price);
+
+        tr.innerHTML = `
+          <td>
+            <div class="flex items-center gap-3">
+              <img src="${p.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=150&q=80'}" style="width: 44px; height: 44px; border-radius: var(--radius-sm); object-fit: cover;">
+              <strong>${p.name}</strong>
+            </div>
+          </td>
+          <td>${p.category_name}</td>
+          <td style="font-weight: 700; color: var(--primary);">${priceFmt}</td>
+          <td>${costFmt}</td>
+          <td><strong>${p.stock_quantity}</strong></td>
+          <td>${p.is_featured ? '⭐ Nổi bật' : '—'}</td>
+          <td><span class="badge ${p.status === 'AVAILABLE' ? 'badge-completed' : 'badge-cancelled'}">${p.status}</span></td>
+          <td style="text-align: right;">
+            <div class="flex justify-end gap-2">
+              <button class="btn btn-sm btn-secondary" onclick="openEditModal(${p.id})">Sửa</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">Xóa</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAddModal() {
+      document.getElementById('modal-title').textContent = 'Thêm Món Ăn Mới';
+      document.getElementById('prod-id').value = '';
+      document.getElementById('prod-name').value = '';
+      document.getElementById('prod-price').value = '';
+      document.getElementById('prod-cost').value = '';
+      document.getElementById('prod-stock').value = '50';
+      document.getElementById('prod-desc').value = '';
+      document.getElementById('prod-image').value = '';
+      document.getElementById('prod-status').value = 'AVAILABLE';
+      document.getElementById('prod-featured').checked = false;
+      document.getElementById('product-modal').classList.add('active');
+    }
+
+    function openEditModal(id) {
+      const p = productsList.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('modal-title').textContent = 'Cập Nhật Món Ăn';
+      document.getElementById('prod-id').value = p.id;
+      document.getElementById('prod-name').value = p.name;
+      document.getElementById('prod-category').value = p.category_id;
+      document.getElementById('prod-price').value = p.price;
+      document.getElementById('prod-cost').value = p.cost_price;
+      document.getElementById('prod-stock').value = p.stock_quantity;
+      document.getElementById('prod-desc').value = p.description || '';
+      document.getElementById('prod-image').value = p.image || '';
+      document.getElementById('prod-status').value = p.status;
+      document.getElementById('prod-featured').checked = !!p.is_featured;
+      document.getElementById('product-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('product-modal').classList.remove('active');
+    }
+
+    document.getElementById('product-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('prod-id').value;
+      const payload = {
+        id: id ? parseInt(id) : undefined,
+        name: document.getElementById('prod-name').value.trim(),
+        category_id: parseInt(document.getElementById('prod-category').value),
+        price: parseFloat(document.getElementById('prod-price').value),
+        cost_price: parseFloat(document.getElementById('prod-cost').value || '0'),
+        stock_quantity: parseInt(document.getElementById('prod-stock').value || '0'),
+        description: document.getElementById('prod-desc').value.trim(),
+        image: document.getElementById('prod-image').value.trim(),
+        status: document.getElementById('prod-status').value,
+        is_featured: document.getElementById('prod-featured').checked ? 1 : 0
+      };
+
+      try {
+        const endpoint = id ? '/products/update.php' : '/products/create.php';
+        const res = await API.post(endpoint, payload);
+        if (res.success) {
+          showToast(res.message || 'Lưu món ăn thành công!', 'success');
+          closeModal();
+          loadData();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    async function deleteProduct(id) {
+      if (!confirm('Bạn có chắc muốn xóa hoặc lưu trữ món ăn này?')) return;
+      try {
+        const res = await API.post('/products/delete.php', { id });
+        if (res.success) {
+          showToast(res.message, 'success');
+          loadData();
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadData);
+  </script>
+</body>
+</html>

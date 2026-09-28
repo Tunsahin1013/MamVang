@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hồ Sơ Nhân Viên - Mâm Vàng POS</title>
+  <link rel="stylesheet" href="/canteen-management/frontend/css/style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span style="font-size: 1.5rem;">👨‍🍳</span>
+        <span>Canteen POS</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li><a href="/canteen-management/frontend/employee/dashboard.html" class="sidebar-link">📊 Tổng Quan</a></li>
+        <li><a href="/canteen-management/frontend/employee/orders.html" class="sidebar-link">📋 Quản Lý Đơn Hàng</a></li>
+        <li><a href="/canteen-management/frontend/employee/products.html" class="sidebar-link">🍲 Món Ăn & Tồn Kho</a></li>
+        <li><a href="/canteen-management/frontend/employee/inventory.html" class="sidebar-link">📦 Nhập / Xuất Kho</a></li>
+        <li><a href="/canteen-management/frontend/employee/attendance.html" class="sidebar-link">⏱️ Chấm Công Ca Làm</a></li>
+        <li><a href="/canteen-management/frontend/employee/shifts.html" class="sidebar-link">📅 Lịch Làm Việc</a></li>
+        <li><a href="/canteen-management/frontend/employee/profile.html" class="sidebar-link active">👤 Hồ Sơ Cá Nhân</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button class="btn btn-secondary btn-sm btn-block" style="color: #cbd5e1; border-color: rgba(255, 255, 255, 0.2);" onclick="API.logout()">
+          🚪 Đăng Xuất
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;">Hồ Sơ Nhân Viên & Tài Khoản</h2>
+        </div>
+      </header>
+
+      <div class="content-body" style="max-width: 800px;">
+        <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+          <div class="flex items-center gap-4" style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);">
+            <img class="auth-user-avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover;">
+            <div>
+              <h3 class="auth-user-name" style="font-size: 1.35rem; font-weight: 800;">Nhân Viên</h3>
+              <p class="auth-user-email" style="color: var(--text-muted); font-size: 0.875rem;">employee@canteen.com</p>
+              <span class="badge badge-ready" style="margin-top: 0.35rem;">Nhân Viên Chính Thức</span>
+            </div>
+          </div>
+
+          <h4 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem;">Đổi Mật Khẩu</h4>
+          <form id="emp-change-pass">
+            <div class="form-group">
+              <label class="form-label">Mật khẩu hiện tại</label>
+              <input type="password" id="cur-pass" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mật khẩu mới</label>
+              <input type="password" id="new-pass" class="form-control" minlength="6" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Lưu Mật Khẩu Mới</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/canteen-management/frontend/js/api.js"></script>
+  <script src="/canteen-management/frontend/js/auth.js"></script>
+  <script>
+    document.getElementById('emp-change-pass').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const current_password = document.getElementById('cur-pass').value;
+      const new_password = document.getElementById('new-pass').value;
+
+      try {
+        const res = await API.post('/auth/change_password.php', { current_password, new_password });
+        if (res.success) {
+          showToast('Đổi mật khẩu thành công!', 'success');
+          document.getElementById('cur-pass').value = '';
+          document.getElementById('new-pass').value = '';
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      AuthGuard.checkAccess(['EMPLOYEE', 'ADMIN']);
+    });
+  </script>
+</body>
+</html>
