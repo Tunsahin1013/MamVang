@@ -3,7 +3,12 @@
  * Handles JWT injection, HTTP methods, error handling, toast notifications, cart management
  */
 
-const API_BASE = 'http://localhost/canteen-management/backend';
+// Tự động nhận diện môi trường chạy
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+const API_BASE = isLocal 
+    ? 'http://localhost/canteen-management/backend'  // Khi chạy trên máy bạn (XAMPP)
+    : '/backend';                                     // Khi chạy trên Hosting/GitHub Pages
 
 const API = {
   getToken() {
